@@ -1,0 +1,133 @@
+.dashboard-right-panel {
+  background-color: var(--color-surface);
+  padding: 16px;
+  height: 100%;
+  overflow-y: auto;
+}
+.dashboard-right-panel.desktop {
+  width: 300px;
+  border-left: 1px solid rgba(255,255,255,0.1);
+}
+.dashboard-right-panel.mobile {
+  width: 100%;
+}
+
+.panel-header {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--color-text-primary);
+  margin-bottom: 20px;
+}
+
+.alert-card {
+  display: flex;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  border: 1px solid;
+  cursor: pointer;
+  align-items: flex-start;
+  transition: box-shadow 0.2s;
+}
+.alert-card.selected {
+  box-shadow: 0 0 12px 0 var(--alert-color);
+}
+
+.alert-icon-wrapper {
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  margin-right: 12px;
+}
+
+.alert-content h4 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: pre-wrap;
+}
+
+.alert-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 6px;
+}
+
+.divider {
+  height: 1px;
+  background-color: rgba(255,255,255,0.1);
+  margin: 24px 0;
+}
+
+.efficiency-card {
+  margin-bottom: 16px;
+  padding: 16px;
+  background-color: rgba(255,255,255,0.05); /* surfaceLight with alpha */
+  border-radius: 12px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+}
+.efficiency-card.col {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.kpi-ring {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.efficiency-info {
+  margin-left: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.info-value {
+  color: var(--color-text-primary);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.co2-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.co2-label {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  flex: 1;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.co2-value {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.progress-bar-bg {
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+}

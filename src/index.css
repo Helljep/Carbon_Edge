@@ -1,0 +1,84 @@
+/* Translating theme/app_theme.dart and colors.dart */
+:root {
+  /* Colors */
+  --color-primary: #00B4D8;
+  --color-secondary: #0077B6;
+  --color-background: #091016;
+  --color-surface: #101B24;
+  --color-accent: #00E5FF;
+  
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #B3C6CD;
+  --color-text-tertiary: #6B8C94;
+  
+  /* Status Colors */
+  --color-success: #00E676;
+  --color-warning: #FFB300;
+  --color-error: #FF3B30;
+  
+  /* Machine Status Colors */
+  --status-running: var(--color-success);
+  --status-idle: var(--color-warning);
+  --status-offline: #757575;
+  --status-alert: var(--color-error);
+
+  /* Fonts */
+  --font-family: 'Roboto', sans-serif;
+  
+  /* Edge radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Global Soft Transitions & Hovers */
+button, 
+.alert-card, 
+.kpi-card, 
+.neon-card, 
+.top-nav-item, 
+.bottom-nav-item, 
+.list-tile, 
+.profile-list-tile,
+.component-item,
+input,
+select,
+.dropdown-container {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.alert-card:hover, 
+.kpi-card:hover,
+.profile-list-tile.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(38, 229, 162, 0.1); 
+  /* Subtle neon glow on interactive cards */
+}
+
+a, svg {
+  transition: color 0.3s ease, fill 0.3s ease, transform 0.3s ease;
+}

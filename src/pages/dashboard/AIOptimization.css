@@ -1,0 +1,333 @@
+.ai-container {
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+.center-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 122, 51, 0.2);
+  border-left-color: var(--color-orange);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-icon { color: var(--color-error); margin-bottom: 20px; }
+.error-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+.error-text { color: var(--color-text-secondary); margin-bottom: 24px; }
+.btn-retry {
+  background-color: var(--color-accent);
+  color: #000;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.ai-layout-wrapper {
+  padding: 24px;
+}
+
+.ai-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.live-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.live-pulse {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--color-lime);
+  position: relative;
+}
+
+.live-pulse::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  background-color: var(--color-lime);
+  animation: pulse-ring 2s infinite alternate;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 4px var(--color-lime); }
+  100% { transform: scale(1.5); opacity: 1; box-shadow: 0 0 12px var(--color-lime); }
+}
+
+.live-text {
+  color: var(--color-lime);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+}
+
+.plant-id {
+  font-family: 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  margin: 0;
+}
+
+.timestamp-text {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.buffer-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--color-surface);
+  border: 1px solid rgba(0, 229, 255, 0.5); /* Cyan */
+  border-radius: 20px;
+  color: var(--color-accent);
+  font-weight: bold;
+}
+
+.ai-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.grid-desktop {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+
+.grid-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Neon Panel Custom Widget */
+.neon-panel {
+  background-color: var(--color-surface);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.05); /* overridden by inline style */
+  box-shadow: 0 0 16px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 250px;
+}
+
+.neon-panel-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 1.2px;
+}
+
+.neon-panel-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.neon-panel-content {
+  padding: 20px;
+  flex: 1;
+}
+
+.neon-panel-content.expand {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Diagnostics */
+.diag-group {
+  margin-bottom: 20px;
+}
+
+.diag-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.diag-label.root-cause { color: var(--color-error); }
+.diag-label.recommendation { color: var(--color-lime); }
+
+.diag-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+/* System Health */
+.health-content-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+}
+
+.health-gauge-area {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.health-metrics-area {
+  flex: 5;
+  display: flex;
+  gap: 8px;
+}
+
+.severity-gauge {
+  position: relative;
+  width: 110px;
+  height: 110px;
+}
+
+.gauge-center {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.gauge-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.gauge-value {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.glowing-metric-card {
+  flex: 1;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.metric-icon-wrap {
+  padding: 6px;
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+
+.metric-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.metric-value {
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+}
+
+.chart-container {
+  flex: 1;
+  min-height: 150px;
+}
+
+.normal-impact-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  background-color: rgba(51, 255, 136, 0.2); /* lime low opacity */
+  border: 1px solid var(--color-lime);
+  border-radius: 16px;
+  gap: 12px;
+}
+
+.normal-impact-state span {
+  color: var(--color-lime);
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 1.2px;
+}
+
+.impact-bars-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.impact-bar-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.impact-bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+
+.impact-bar-bg {
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.impact-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}

@@ -1,0 +1,10 @@
+.neon-card {
+  background-color: var(--color-surface);
+  border-width: 1.5px;
+  border-style: solid;
+  /* border-color and box-shadow are applied via inline styles in React component based on props */
+  /* border-radius and padding are applied via inline styles */
+  box-sizing: border-box;
+  overflow: hidden;
+  height: 100%;
+}

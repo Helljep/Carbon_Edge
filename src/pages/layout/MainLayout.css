@@ -1,0 +1,193 @@
+.main-layout-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  overflow: hidden;
+}
+
+/* --- Mobile AppBar --- */
+.mobile-appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: transparent;
+  z-index: 10;
+}
+
+.mobile-appbar-title {
+  color: var(--color-accent);
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.mobile-appbar-actions {
+  cursor: pointer;
+}
+
+/* --- Content Area --- */
+.main-layout-content {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* --- Mobile Bottom Nav --- */
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-surface-light);
+  padding: 8px 0;
+  padding-bottom: env(safe-area-inset-bottom, 8px); /* For iOS safe area */
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  flex: 1;
+  transition: color 0.2s;
+}
+
+.bottom-nav-item.active {
+  color: var(--color-accent);
+}
+
+.bottom-nav-label {
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+/* --- Web/Desktop Top Nav --- */
+.top-nav {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 64px;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-surface-light);
+}
+
+.top-nav-brand {
+  display: flex;
+  align-items: center;
+  margin-right: 48px;
+}
+
+.top-nav-logo {
+  height: 32px;
+  margin-right: 12px;
+}
+
+.top-nav-title {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.top-nav-links {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.top-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.top-nav-item:hover {
+  color: var(--color-text-primary);
+}
+
+.top-nav-item.active {
+  color: var(--color-accent);
+  border-bottom: 2px solid var(--color-accent);
+  font-weight: bold;
+}
+
+/* --- Simulation Popup --- */
+.sim-popup-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.sim-popup-card {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-accent);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 0 20px rgba(38, 229, 162, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.sim-popup-title {
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 1.2px;
+  margin-bottom: 24px;
+}
+
+.sim-popup-content {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.sim-popup-content p {
+  margin-bottom: 16px;
+}
+
+.sim-popup-btn {
+  background: transparent;
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
+  padding: 16px;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.sim-popup-btn:hover {
+  background-color: var(--color-accent);
+  color: #000;
+}
+
+.sim-popup-connecting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--color-accent);
+  font-weight: bold;
+}

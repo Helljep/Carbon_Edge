@@ -1,0 +1,263 @@
+.dashboard-web-layout {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.dashboard-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  background-color: var(--color-surface);
+  overflow-y: auto;
+}
+
+.dashboard-main-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.dashboard-right {
+  width: 320px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(255,255,255,0.05);
+  background-color: var(--color-surface);
+  overflow-y: auto;
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-pd {
+  padding: 16px;
+}
+
+.web-pd {
+  padding: 24px;
+}
+
+.spacer-24 {
+  height: 24px;
+}
+
+/* Mobile Header */
+.mobile-dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--color-surface-light);
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.view-label {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.dropdown-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-primary);
+}
+
+.dropdown-container select {
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-weight: bold;
+  font-size: 14px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.dropdown-container select option {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+/* Web Header */
+.header-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.header-subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+}
+
+/* KPIs */
+.kpi-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.mobile-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.web-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Charts */
+.locked-chart-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.main-locked {
+  height: 380px;
+}
+
+.secondary-locked {
+  height: 280px;
+}
+
+.locked-title {
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.locked-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.chart-tabs {
+  display: flex;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none; /* Firefox */
+}
+
+.chart-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.chart-tab {
+  padding: 6px 12px;
+  margin-right: 8px;
+  border-radius: 16px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.chart-tab.wide {
+  font-size: 14px;
+}
+
+.chart-tab.active {
+  background-color: var(--color-surface-light);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-secondary);
+}
+
+.chart-tab.active.wide {
+  font-weight: bold;
+}
+
+.chart-wrapper {
+  margin-top: 24px;
+  width: 100%;
+  position: relative;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+/* Secondary Charts Group */
+.secondary-charts {
+  display: flex;
+  gap: 16px;
+}
+
+.secondary-charts.column {
+  flex-direction: column;
+}
+
+.secondary-charts.wide {
+  flex-direction: row;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.section-subtitle {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.min-h-\[300px\] {
+  min-height: 300px;
+}
+
+.pie-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pie-center-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.pie-center-label {
+  font-size: 10px;
+  color: rgba(179, 198, 193, 0.7);
+}
