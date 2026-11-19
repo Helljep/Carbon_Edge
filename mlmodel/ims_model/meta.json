@@ -1,0 +1,14 @@
+{
+  "threshold": 1.8500541903209942,
+  "train_snapshots": 246,
+  "features": [
+    "rms",
+    "peak",
+    "kurtosis",
+    "skew",
+    "crest",
+    "band_0_2k",
+    "band_2k_5k",
+    "band_5k_10k"
+  ]
+}

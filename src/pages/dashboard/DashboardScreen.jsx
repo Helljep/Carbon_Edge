@@ -9,6 +9,7 @@ import KPICard from '../../components/KPICard';
 import NeonCard from '../../components/NeonCard';
 import PlantHeatmap from '../../components/PlantHeatmap';
 import LiveTelemetryChart from '../../components/LiveTelemetryChart';
+import BearingHealthPanel from '../../components/BearingHealthPanel';
 
 import { 
   Thermometer, Wind, Fuel, Zap, Settings, Activity, 
@@ -409,6 +410,9 @@ const DashboardScreen = () => {
       
       {SecondaryCharts()}
       <div className="spacer-24"></div>
+
+      <BearingHealthPanel />
+      <div className="spacer-24"></div>
       
       <PlantHeatmap isMobile={true} selectedMachine={selectedMachine} />
       <div className="spacer-24"></div>
@@ -448,6 +452,9 @@ const DashboardScreen = () => {
           <div className="spacer-24"></div>
 
           {SecondaryCharts()}
+          <div className="spacer-24"></div>
+
+          <BearingHealthPanel />
           <div className="spacer-24"></div>
 
           <PlantHeatmap isMobile={false} selectedMachine={selectedMachine} />

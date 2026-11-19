@@ -24,7 +24,7 @@ except ImportError:
 
 from typing import List, Dict
 
-MODEL_DIR = 'carbonedge_model'
+MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'carbonedge_model')
 
 # -------------------------------------------------
 # GLOBAL CONFIG
@@ -375,6 +375,80 @@ async def websocket_endpoint(ws: WebSocket):
     except Exception as e:
         print(f"WebSocket error: {e}")
         manager.disconnect(ws)
+
+# ---------------- Real bearing replay (NASA IMS 2nd_test) ----------------
+# Replays real recorded vibration snapshots through the trained anomaly model.
+# Connect:  ws://localhost:8000/ws/bearing?interval=0.2   (seconds per snapshot)
+
+_BEARING = {"loaded": False}
+
+def _load_bearing():
+    if _BEARING["loaded"]:
+        return _BEARING
+    try:
+        import sys
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import ims_pipeline as ims
+        df = pd.read_csv(ims.FEATURES_CSV)
+        m = joblib.load(ims.MODEL_DIR / "model.joblib")
+        meta = json.loads((ims.MODEL_DIR / "meta.json").read_text())
+        err = ims.recon_error(m["scaler"], m["pca"], ims.prep(df))
+        _BEARING.update(df=df, err=err, thr=meta["threshold"], loaded=True, error=None)
+    except Exception as e:
+        _BEARING.update(loaded=False, error=str(e))
+    return _BEARING
+
+@app.get("/bearing/info")
+def bearing_info():
+    b = _load_bearing()
+    if not b["loaded"]:
+        return {"ready": False, "error": b.get("error")}
+    return {"ready": True, "snapshots": len(b["df"]), "threshold": b["thr"],
+            "source": "NASA IMS 2nd_test, bearing 1 (run to failure)"}
+
+@app.websocket("/ws/bearing")
+async def bearing_stream(ws: WebSocket):
+    await ws.accept()
+    b = _load_bearing()
+    if not b["loaded"]:
+        await ws.send_json({"type": "error", "message": b.get("error") or "model not ready"})
+        await ws.close()
+        return
+    try:
+        interval = max(0.02, float(ws.query_params.get("interval", 0.2)))
+    except ValueError:
+        interval = 0.2
+    df, err, thr = b["df"], b["err"], b["thr"]
+    n = len(df)
+    streak = 0
+    first_alarm = None
+    try:
+        for i in range(n):
+            flagged = bool(err[i] > thr)
+            streak = streak + 1 if flagged else 0
+            alarm = streak >= 3
+            if alarm and first_alarm is None:
+                first_alarm = i
+            hours_left = (n - 1 - i) * 10 / 60
+            await ws.send_json({
+                "type": "bearing",
+                "index": i,
+                "total": n,
+                "file": str(df["file"].iloc[i]),
+                "rms": float(df["rms"].iloc[i]),
+                "kurtosis": float(df["kurtosis"].iloc[i]),
+                "error": float(err[i]),
+                "threshold": float(thr),
+                "alarm": alarm,
+                "status": "FAULT" if alarm else ("WATCH" if flagged else "HEALTHY"),
+                "hours_to_end_of_run": round(hours_left, 1),
+                "first_alarm_index": first_alarm,
+                "lead_hours": round((n - 1 - first_alarm) * 10 / 60, 1) if first_alarm is not None else None,
+            })
+            await asyncio.sleep(interval)
+        await ws.send_json({"type": "done"})
+    except (WebSocketDisconnect, RuntimeError):
+        pass
 
 # ---------------- Health Check ----------------
 

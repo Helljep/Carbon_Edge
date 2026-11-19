@@ -63,3 +63,7 @@ build/
 .venv/
 .env
 .env.local
+
+# Large datasets
+data/ims/
+data/processed/ims_scored.csv
