@@ -51,6 +51,10 @@ Same method, one independent model per bearing, all 3 IMS tests (12 bearing runs
 - The 3rd-test failure is still missed under this rule. Settings catching all 4 exist (e.g. 25% baseline, p99, 1.5x: median warning ~144 h, max 0.9% healthy-region false alarms) but were found after seeing all results, so they are not validated.
 - Takeaway: calibration makes false alarms more predictable across machines; it does not by itself make the subtle failure detectable. Only 4 failed bearings, so single-detection differences are not meaningful.
 
+## Other machines (summary; details in README)
+- **Hydraulic rig (ZeMA, UCI #447):** only 21 of 2,205 cycles are fully healthy, so no unsupervised baseline is evaluated. Random-forest diagnosis with grouped CV (by run / by unseen fault combination): cooler 97.8% / 95.5%, pump leakage 99.1% / 99.1%, accumulator 78.9% / 75.7%, valve 66.6% / 64.3% (weak). Majority baselines 33.6%, 55.4%, 36.6%, 51.0%.
+- **Steel plant energy (UCI #851):** calendar-only expected-usage model, held-out Oct-Dec MAE 11.1 vs 28.3 kWh naive. CO2 is derived from kWh. No waste labels, so flags ("unexpectedly high", 2.8% of intervals) are not validated detections.
+
 ## Limitations
 - **One lab rig family.** Same bearing model, speed and load in all three tests. No evidence yet for other machines or plants.
 - **A missed failure** (3rd test, bearing 3) at the fixed threshold.

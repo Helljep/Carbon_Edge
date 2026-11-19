@@ -1,0 +1,42 @@
+{
+  "cooler/by_run": {
+    "majority": 0.3360544217687075,
+    "accuracy": 0.9782312925170068,
+    "balanced_accuracy": 0.978169730758169
+  },
+  "cooler/by_combo": {
+    "majority": 0.3360544217687075,
+    "accuracy": 0.9551020408163265,
+    "balanced_accuracy": 0.9549456870423221
+  },
+  "valve/by_run": {
+    "majority": 0.5102040816326531,
+    "accuracy": 0.6657596371882086,
+    "balanced_accuracy": 0.5514722222222223
+  },
+  "valve/by_combo": {
+    "majority": 0.5102040816326531,
+    "accuracy": 0.6426303854875284,
+    "balanced_accuracy": 0.6123888888888889
+  },
+  "pump_leak/by_run": {
+    "majority": 0.5537414965986395,
+    "accuracy": 0.9909297052154195,
+    "balanced_accuracy": 0.9868543710007125
+  },
+  "pump_leak/by_combo": {
+    "majority": 0.5537414965986395,
+    "accuracy": 0.9913832199546485,
+    "balanced_accuracy": 0.9883408907799152
+  },
+  "accumulator/by_run": {
+    "majority": 0.36643990929705217,
+    "accuracy": 0.7891156462585034,
+    "balanced_accuracy": 0.8147002088023079
+  },
+  "accumulator/by_combo": {
+    "majority": 0.36643990929705217,
+    "accuracy": 0.7569160997732426,
+    "balanced_accuracy": 0.772103539087889
+  }
+}

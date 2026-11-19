@@ -67,3 +67,5 @@ build/
 # Large datasets
 data/ims/
 data/processed/ims_scored.csv
+data/hydraulic/
+data/steel/

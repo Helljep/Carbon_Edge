@@ -1,0 +1,20 @@
+{
+  "rows": 35040,
+  "period": [
+    "2018-01-01 00:00:00",
+    "2018-12-31 23:45:00"
+  ],
+  "total_kWh": 959636.7100000001,
+  "total_tCO2": 403.81000000000006,
+  "implied_tCO2_per_kWh": 0.0004207946567613071,
+  "corr_kWh_CO2": 0.9881797716789625,
+  "share_active_intervals_lagging_PF_below_90": 0.548132081395017,
+  "heldout_months": "Oct-Dec",
+  "heldout_MAE_model": 11.108732097415704,
+  "heldout_MAE_naive_mean": 28.317396522931954,
+  "high_threshold_kWh": 46.153982751278896,
+  "heldout_share_flagged_high": 0.028079710144927536,
+  "heldout_excess_kWh_flagged": 14932.62091982395,
+  "heldout_total_kWh": 230320.03999999998,
+  "heldout_excess_share_of_total": 0.0648342233694643
+}

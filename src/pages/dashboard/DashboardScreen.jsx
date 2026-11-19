@@ -10,6 +10,8 @@ import NeonCard from '../../components/NeonCard';
 import PlantHeatmap from '../../components/PlantHeatmap';
 import LiveTelemetryChart from '../../components/LiveTelemetryChart';
 import BearingHealthPanel from '../../components/BearingHealthPanel';
+import HydraulicDiagnosisPanel from '../../components/HydraulicDiagnosisPanel';
+import PlantEnergyPanel from '../../components/PlantEnergyPanel';
 
 import { 
   Thermometer, Wind, Fuel, Zap, Settings, Activity, 
@@ -413,6 +415,12 @@ const DashboardScreen = () => {
 
       <BearingHealthPanel />
       <div className="spacer-24"></div>
+
+      <HydraulicDiagnosisPanel />
+      <div className="spacer-24"></div>
+
+      <PlantEnergyPanel />
+      <div className="spacer-24"></div>
       
       <PlantHeatmap isMobile={true} selectedMachine={selectedMachine} />
       <div className="spacer-24"></div>
@@ -455,6 +463,12 @@ const DashboardScreen = () => {
           <div className="spacer-24"></div>
 
           <BearingHealthPanel />
+          <div className="spacer-24"></div>
+
+          <HydraulicDiagnosisPanel />
+          <div className="spacer-24"></div>
+
+          <PlantEnergyPanel />
           <div className="spacer-24"></div>
 
           <PlantHeatmap isMobile={false} selectedMachine={selectedMachine} />

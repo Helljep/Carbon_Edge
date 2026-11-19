@@ -12,6 +12,7 @@ import sklearn
 import joblib
 import json
 import os
+from pathlib import Path
 from collections import deque
 import websockets
 
@@ -444,6 +445,80 @@ async def bearing_stream(ws: WebSocket):
                 "hours_to_end_of_run": round(hours_left, 1),
                 "first_alarm_index": first_alarm,
                 "lead_hours": round((n - 1 - first_alarm) * 10 / 60, 1) if first_alarm is not None else None,
+            })
+            await asyncio.sleep(interval)
+        await ws.send_json({"type": "done"})
+    except (WebSocketDisconnect, RuntimeError):
+        pass
+
+# ---------------- More real machines: hydraulic rig + plant energy ----------------
+# /ws/hydraulic?interval=0.05  replays 2205 real test-rig cycles with out-of-fold (honest) diagnoses
+# /ws/energy?interval=0.01     replays held-out Oct-Dec steel-plant energy against the expected baseline
+
+_REPLAY = {}
+
+def _load_csv(name):
+    if name not in _REPLAY:
+        import ims_pipeline as ims
+        _REPLAY[name] = pd.read_csv(ims.OUT_DIR / name)
+    return _REPLAY[name]
+
+def _interval(ws, default):
+    try:
+        return max(0.005, float(ws.query_params.get("interval", default)))
+    except ValueError:
+        return default
+
+@app.websocket("/ws/hydraulic")
+async def hydraulic_stream(ws: WebSocket):
+    await ws.accept()
+    try:
+        df = _load_csv("hydraulic_predictions.csv")
+    except Exception as e:
+        await ws.send_json({"type": "error", "message": f"run hydraulic_pipeline.py extract+diagnose first ({e})"})
+        await ws.close()
+        return
+    interval = _interval(ws, 0.05)
+    comps = ["cooler", "valve", "pump_leak", "accumulator"]
+    try:
+        for i, r in df.iterrows():
+            msg = {"type": "hydraulic", "index": int(i), "total": len(df)}
+            for c in comps:
+                msg[f"true_{c}"] = int(r[f"true_{c}"])
+                msg[f"pred_{c}"] = int(r[f"pred_{c}"])
+                msg[f"ok_{c}"] = bool(r[f"true_{c}"] == r[f"pred_{c}"])
+            for k in ["PS1_mean", "TS1_mean", "EPS1_mean", "CE_mean"]:
+                msg[k] = float(r[k])
+            await ws.send_json(msg)
+            await asyncio.sleep(interval)
+        await ws.send_json({"type": "done"})
+    except (WebSocketDisconnect, RuntimeError):
+        pass
+
+@app.websocket("/ws/energy")
+async def energy_stream(ws: WebSocket):
+    await ws.accept()
+    try:
+        df = _load_csv("energy_heldout.csv")
+        meta = json.loads((Path(__file__).resolve().parent / "energy_results.json").read_text())
+    except Exception as e:
+        await ws.send_json({"type": "error", "message": f"run energy_pipeline.py first ({e})"})
+        await ws.close()
+        return
+    interval = _interval(ws, 0.01)
+    cum_kwh = cum_co2 = cum_excess = 0.0
+    try:
+        for i, r in df.iterrows():
+            cum_kwh += float(r["Usage_kWh"])
+            cum_co2 += float(r["CO2(tCO2)"])
+            if bool(r["high"]):
+                cum_excess += float(r["excess"])
+            await ws.send_json({
+                "type": "energy", "index": int(i), "total": len(df), "date": str(r["date"]),
+                "kwh": float(r["Usage_kWh"]), "expected": float(r["expected"]),
+                "high": bool(r["high"]), "cum_kwh": round(cum_kwh, 1),
+                "cum_tco2": round(cum_co2, 2), "cum_excess_kwh": round(cum_excess, 1),
+                "high_threshold_kwh": meta["high_threshold_kWh"],
             })
             await asyncio.sleep(interval)
         await ws.send_json({"type": "done"})
