@@ -49,6 +49,12 @@ A prototype dashboard for **early detection of machine faults and energy waste i
 - **Settings do not transfer between tests.** Leave-one-test-out detected 3 of 4 failures, the same as the fixed default. A setting chosen on tests 1 and 2 gave 2.9% first-half false alarms on the held-out 1st test, and the setting chosen for the 3rd test (k=10) missed its failure.
 - **Conclusion:** one global threshold is not enough. Each machine needs its own calibration against a long healthy baseline before alerts can be trusted.
 
+**Per-machine calibration** ([`mlmodel/ims_calibration_study.py`](mlmodel/ims_calibration_study.py)): each bearing's own healthy baseline is split into a fit part and a calibration part, and the threshold is a percentile of the calibration errors times a safety margin (27 settings; no failure labels used). Checked with leave-one-test-out.
+- **False alarms became safer to transfer.** In every leave-one-test-out fold the chosen setting gave 0% false alarms in the healthy reference region (snapshots 40-50% of each run). The earlier method's chosen setting gave 2.9% on one held-out test.
+- **Detection did not improve under the honest test.** Leave-one-test-out still detected **3 of 4** failures; the subtle 3rd-test failure was missed again because the setting picked on the other two tests was the most conservative one.
+- **Some settings do catch all 4** (for example 25% baseline, 99th percentile, 1.5x margin: 4 of 4, about 144 h median warning, at most 0.9% healthy-region false alarms). I found those by looking at all the results, so they are optimistic and not evidence yet.
+- With only 4 failed bearings, a difference of one detection is not statistically meaningful.
+
 **Limits (please read):**
 - Three test rigs from one lab; same bearing model, speed and load. Not evidence for other machines or plants.
 - No labelled fault onset, so lead time is measured against the end of the run.
@@ -102,7 +108,7 @@ python mlmodel/ims_pipeline.py eval
 
 ## Roadmap
 
-* Per-machine threshold calibration (e.g. percentile of a longer healthy baseline) with a held-out validation split
+* Validate a calibrated setting on new, unseen machines or tests (the 4-of-4 settings were found post hoc)
 * Add more real machine types (pumps, hydraulics, plant-level energy and CO₂)
 * Replace the remaining simulated panels with real replayed data
 * Real protocol connectors (MQTT first)

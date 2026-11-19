@@ -45,6 +45,12 @@ Same method, one independent model per bearing, all 3 IMS tests (12 bearing runs
 - Leave-one-test-out (setting chosen on two tests, scored on the third): 3 of 4 failures detected, same as the fixed default. One chosen setting gave 2.9% false alarms on its held-out test; another missed the 3rd-test failure.
 - Takeaway: the setting does not transfer across tests. Per-machine calibration is required. The "best" row of the full grid is optimistic because it was seen in full; the leave-one-test-out numbers are the honest estimate.
 
+## Per-machine calibration (`mlmodel/ims_calibration_study.py`)
+- Method: baseline = first 15/25/40% of a bearing's run; first 60% of it fits scaler+PCA, last 40% calibrates. Threshold = percentile (99 / 99.9 / 100) of calibration errors x margin (1.0 / 1.5 / 2.0), 3 in a row. No failure labels used. Results: `mlmodel/ims_calibration_study.json`.
+- Leave-one-test-out (rule fixed in advance: healthy-region false alarms <= 0.5%, then most detections, ties -> larger margin): **3 of 4** failures detected; 0% healthy-region false alarms in all three folds (earlier method: 2.9% in one fold).
+- The 3rd-test failure is still missed under this rule. Settings catching all 4 exist (e.g. 25% baseline, p99, 1.5x: median warning ~144 h, max 0.9% healthy-region false alarms) but were found after seeing all results, so they are not validated.
+- Takeaway: calibration makes false alarms more predictable across machines; it does not by itself make the subtle failure detectable. Only 4 failed bearings, so single-detection differences are not meaningful.
+
 ## Limitations
 - **One lab rig family.** Same bearing model, speed and load in all three tests. No evidence yet for other machines or plants.
 - **A missed failure** (3rd test, bearing 3) at the fixed threshold.
@@ -57,4 +63,4 @@ Same method, one independent model per bearing, all 3 IMS tests (12 bearing runs
 Demonstration and research on early fault detection. Not for safety-critical decisions.
 
 ## Next steps
-Per-machine threshold calibration; add other machine types; validate on real plant data.
+Validate a calibrated setting on new, unseen machines; add other machine types; validate on real plant data.
