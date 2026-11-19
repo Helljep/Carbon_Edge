@@ -26,15 +26,29 @@ A prototype dashboard for **early detection of machine faults and energy waste i
 2. Train a PCA reconstruction-error anomaly detector on the **healthy first 25%** of the run only (time-based split, never random).
 3. Threshold = mean + 6 standard deviations of the training error. An alarm needs 3 flagged snapshots in a row.
 
-**Result:**
-- **0 false alarms** on 246 held-out healthy snapshots
+**Result on the live-demo run (2nd_test, bearing 1):**
+- 0 false alarms on 246 held-out healthy snapshots
 - First sustained alarm about **74 hours before the end of the run**
-- 96% of snapshots after that point flagged, rising to 100% as the bearing degrades
+
+**Wider check: all 3 NASA tests, 12 bearing runs** ([`mlmodel/ims_multi_eval.py`](mlmodel/ims_multi_eval.py)). One independent model per bearing, each trained on that bearing's own first 25%:
+
+| Test | Bearing (documented outcome) | Result |
+|---|---|---|
+| 1st | b3 (inner race failure) | Detected, ~253 h before end of run |
+| 1st | b4 (roller element failure) | Detected, ~120 h before end |
+| 2nd | b1 (outer race failure) | Detected, ~74 h before end |
+| 3rd | b3 (outer race failure) | **Missed**: score rose ~9x but stayed under the threshold |
+
+- **3 of 4 failures detected**, with 74 to 253 hours of warning.
+- **1 of 4 missed** (3rd test, bearing 3).
+- **Before drift, the false-alarm rate was at most 0.4%** in the held-out first half, for all 12 runs.
+- **Control bearings** (no reported failure): 5 of 8 raised sustained alarms later in their runs. These are not labelled, so they could be real wear, vibration travelling through the shared shaft, or false alarms. The detector says "something drifted", not which bearing.
 
 **Limits (please read):**
-- One bearing, one run. It shows the method works; it does not show it generalizes.
-- The dataset has no labelled fault onset, so "74 hours early" is measured against the end of the run.
-- This is a replay of recorded data, not a live plant.
+- Three test rigs from one lab; same bearing model, speed and load. Not evidence for other machines or plants.
+- No labelled fault onset, so lead time is measured against the end of the run.
+- Threshold (mean + 6 sigma, 3 in a row) was fixed once on training data, not tuned per test, and not studied for sensitivity.
+- The live demo is a replay of recorded data, not a live plant.
 
 See [MODEL_CARD.md](MODEL_CARD.md) for details.
 
@@ -83,7 +97,7 @@ python mlmodel/ims_pipeline.py eval
 
 ## Roadmap
 
-* Repeat the evaluation on IMS `1st_test` and `3rd_test`
+* Study threshold sensitivity and the missed 3rd_test failure
 * Add more real machine types (pumps, hydraulics, plant-level energy and CO₂)
 * Replace the remaining simulated panels with real replayed data
 * Real protocol connectors (MQTT first)

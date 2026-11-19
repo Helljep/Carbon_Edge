@@ -24,8 +24,24 @@ RMS, peak, kurtosis, skewness, crest factor, and spectral energy in 0–2 kHz, 2
 - **Detection:** first sustained alarm at snapshot 539, about 74 hours before the end of the run.
 - **After onset:** 95.7% of snapshots 539–700 flagged, 100% from 700 onward.
 
+## Multi-test evaluation (`mlmodel/ims_multi_eval.py`)
+Same method, one independent model per bearing, all 3 IMS tests (12 bearing runs; results in `mlmodel/ims_multi_results.json`).
+
+| Test | Bearing | Documented outcome | Result |
+|---|---|---|---|
+| 1st | b3 | inner race failure | detected, ~253 h before end |
+| 1st | b4 | roller element failure | detected, ~120 h before end |
+| 2nd | b1 | outer race failure | detected, ~74 h before end |
+| 3rd | b3 | outer race failure | **missed** (score rose ~9x, stayed under threshold) |
+
+- 3 of 4 failures detected; 1 missed.
+- Held-out first-half alarm rate at most 0.4% across all 12 runs.
+- 8 control bearings (no reported failure): 3 stayed quiet, 5 raised sustained alarms later in the run. Unlabelled, so these may be genuine wear, cross-talk through the shared shaft, or false alarms; the model cannot tell them apart.
+- The 3rd test archive holds 6,324 files; only the 4,448 documented in the NASA readme were used.
+
 ## Limitations
-- **Single bearing, single run.** No evidence yet of generalization to other bearings, machines or plants.
+- **One lab rig family.** Same bearing model, speed and load in all three tests. No evidence yet for other machines or plants.
+- **A missed failure** (3rd test, bearing 3) at the fixed threshold.
 - **No labelled fault onset.** Lead time is measured against end of run, not a ground-truth onset.
 - **Threshold choice** (6σ, 3-in-a-row) was set once, on training data. Sensitivity to these settings has not been studied.
 - **Replay, not live.** The dashboard replays recorded data; no live sensor integration.
@@ -35,4 +51,4 @@ RMS, peak, kurtosis, skewness, crest factor, and spectral energy in 0–2 kHz, 2
 Demonstration and research on early fault detection. Not for safety-critical decisions.
 
 ## Next steps
-Repeat on IMS `1st_test` and `3rd_test`; study threshold sensitivity; add other machine types; validate on real plant data.
+Study threshold sensitivity and the missed failure (on a separate validation split, not the test data); add other machine types; validate on real plant data.
