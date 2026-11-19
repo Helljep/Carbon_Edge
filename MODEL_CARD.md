@@ -39,11 +39,17 @@ Same method, one independent model per bearing, all 3 IMS tests (12 bearing runs
 - 8 control bearings (no reported failure): 3 stayed quiet, 5 raised sustained alarms later in the run. Unlabelled, so these may be genuine wear, cross-talk through the shared shaft, or false alarms; the model cannot tell them apart.
 - The 3rd test archive holds 6,324 files; only the 4,448 documented in the NASA readme were used.
 
+## Threshold sensitivity (`mlmodel/ims_threshold_study.py`)
+- Grid: k in {2,3,4,5,6,8,10} sigma x m in {1,3,5} consecutive flags (results: `mlmodel/ims_threshold_study.json`).
+- Lower thresholds catch all 4 failures (e.g. k=4, m=3: 4/4 detected, 0.17% first-half false alarms) but the missed 3rd-test bearing then gets only ~9 h warning; k=3 gives ~181 h with 0.66% overall alarms.
+- Leave-one-test-out (setting chosen on two tests, scored on the third): 3 of 4 failures detected, same as the fixed default. One chosen setting gave 2.9% false alarms on its held-out test; another missed the 3rd-test failure.
+- Takeaway: the setting does not transfer across tests. Per-machine calibration is required. The "best" row of the full grid is optimistic because it was seen in full; the leave-one-test-out numbers are the honest estimate.
+
 ## Limitations
 - **One lab rig family.** Same bearing model, speed and load in all three tests. No evidence yet for other machines or plants.
 - **A missed failure** (3rd test, bearing 3) at the fixed threshold.
 - **No labelled fault onset.** Lead time is measured against end of run, not a ground-truth onset.
-- **Threshold choice** (6σ, 3-in-a-row) was set once, on training data. Sensitivity to these settings has not been studied.
+- **Threshold choice** (6σ, 3-in-a-row) is a trade-off that does not transfer between tests (see above).
 - **Replay, not live.** The dashboard replays recorded data; no live sensor integration.
 - **Lab data.** A test rig with a fixed load and speed. Real plants have varying load, noise and maintenance events.
 
@@ -51,4 +57,4 @@ Same method, one independent model per bearing, all 3 IMS tests (12 bearing runs
 Demonstration and research on early fault detection. Not for safety-critical decisions.
 
 ## Next steps
-Study threshold sensitivity and the missed failure (on a separate validation split, not the test data); add other machine types; validate on real plant data.
+Per-machine threshold calibration; add other machine types; validate on real plant data.

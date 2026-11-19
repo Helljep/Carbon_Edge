@@ -44,10 +44,15 @@ A prototype dashboard for **early detection of machine faults and energy waste i
 - **Before drift, the false-alarm rate was at most 0.4%** in the held-out first half, for all 12 runs.
 - **Control bearings** (no reported failure): 5 of 8 raised sustained alarms later in their runs. These are not labelled, so they could be real wear, vibration travelling through the shared shaft, or false alarms. The detector says "something drifted", not which bearing.
 
+**Threshold study** ([`mlmodel/ims_threshold_study.py`](mlmodel/ims_threshold_study.py)): 7 sigma multipliers x 3 "in a row" settings, plus a leave-one-test-out check where the setting is chosen on two tests and scored on the third.
+- **The miss is a trade-off, not a bug.** The missed failure (3rd test, bearing 3) is caught at lower thresholds (k=2 to 4), but only after allowing more false alarms: k=4, 3-in-a-row detects all 4 failures with 0.17% first-half false alarms, yet gives that bearing only about 9 h of warning (k=3 gives about 181 h but 0.66% overall alarms).
+- **Settings do not transfer between tests.** Leave-one-test-out detected 3 of 4 failures, the same as the fixed default. A setting chosen on tests 1 and 2 gave 2.9% first-half false alarms on the held-out 1st test, and the setting chosen for the 3rd test (k=10) missed its failure.
+- **Conclusion:** one global threshold is not enough. Each machine needs its own calibration against a long healthy baseline before alerts can be trusted.
+
 **Limits (please read):**
 - Three test rigs from one lab; same bearing model, speed and load. Not evidence for other machines or plants.
 - No labelled fault onset, so lead time is measured against the end of the run.
-- Threshold (mean + 6 sigma, 3 in a row) was fixed once on training data, not tuned per test, and not studied for sensitivity.
+- Default threshold (mean + 6 sigma, 3 in a row) was fixed once on training data. The study above shows it is a trade-off and does not transfer between tests.
 - The live demo is a replay of recorded data, not a live plant.
 
 See [MODEL_CARD.md](MODEL_CARD.md) for details.
@@ -97,7 +102,7 @@ python mlmodel/ims_pipeline.py eval
 
 ## Roadmap
 
-* Study threshold sensitivity and the missed 3rd_test failure
+* Per-machine threshold calibration (e.g. percentile of a longer healthy baseline) with a held-out validation split
 * Add more real machine types (pumps, hydraulics, plant-level energy and CO₂)
 * Replace the remaining simulated panels with real replayed data
 * Real protocol connectors (MQTT first)

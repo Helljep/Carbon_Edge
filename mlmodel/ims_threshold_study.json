@@ -1,0 +1,252 @@
+{
+  "grid": [
+    {
+      "k": 2,
+      "m": 1,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.09443830631680006,
+      "controls_quiet": 0,
+      "controls_total": 8,
+      "median_lead_h": 416.22
+    },
+    {
+      "k": 2,
+      "m": 3,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.01631746550811299,
+      "controls_quiet": 1,
+      "controls_total": 8,
+      "median_lead_h": 186.72861111111112
+    },
+    {
+      "k": 2,
+      "m": 5,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.006760176274564764,
+      "controls_quiet": 2,
+      "controls_total": 8,
+      "median_lead_h": 159.6151388888889
+    },
+    {
+      "k": 3,
+      "m": 1,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0487079870923841,
+      "controls_quiet": 0,
+      "controls_total": 8,
+      "median_lead_h": 301.9636111111111
+    },
+    {
+      "k": 3,
+      "m": 3,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0048299486570298495,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 167.78180555555556
+    },
+    {
+      "k": 3,
+      "m": 5,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0012881624199712585,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 110.78180555555556
+    },
+    {
+      "k": 4,
+      "m": 1,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.026844413197438785,
+      "controls_quiet": 1,
+      "controls_total": 8,
+      "median_lead_h": 297.0469444444444
+    },
+    {
+      "k": 4,
+      "m": 3,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.001681771465944128,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 96.88236111111111
+    },
+    {
+      "k": 4,
+      "m": 5,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.000459094690852142,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 119.43138888888889
+    },
+    {
+      "k": 5,
+      "m": 1,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.017865889649473235,
+      "controls_quiet": 2,
+      "controls_total": 8,
+      "median_lead_h": 296.3802777777778
+    },
+    {
+      "k": 5,
+      "m": 3,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0009134621801631052,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 119.76472222222222
+    },
+    {
+      "k": 5,
+      "m": 5,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0001498800959232614,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 80.05
+    },
+    {
+      "k": 6,
+      "m": 1,
+      "failures_detected": 4,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.012322487365101354,
+      "controls_quiet": 2,
+      "controls_total": 8,
+      "median_lead_h": 283.19875
+    },
+    {
+      "k": 6,
+      "m": 3,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0004543674893109631,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 119.76472222222222
+    },
+    {
+      "k": 6,
+      "m": 5,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0001498800959232614,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 80.05
+    },
+    {
+      "k": 8,
+      "m": 1,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.006835116322526396,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 154.2302777777778
+    },
+    {
+      "k": 8,
+      "m": 3,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0002248201438848921,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 119.76472222222222
+    },
+    {
+      "k": 8,
+      "m": 5,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 7.49400479616307e-05,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 80.05
+    },
+    {
+      "k": 10,
+      "m": 1,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.004834675858571028,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 154.2302777777778
+    },
+    {
+      "k": 10,
+      "m": 3,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 81.05
+    },
+    {
+      "k": 10,
+      "m": 5,
+      "failures_detected": 3,
+      "failures_total": 4,
+      "mean_fa_first_half": 0.0,
+      "controls_quiet": 3,
+      "controls_total": 8,
+      "median_lead_h": 80.05
+    }
+  ],
+  "leave_one_test_out": [
+    {
+      "k": 6,
+      "m": 1,
+      "failures_detected": 2,
+      "failures_total": 2,
+      "mean_fa_first_half": 0.028756957328385898,
+      "controls_quiet": 1,
+      "controls_total": 2,
+      "median_lead_h": 283.19875,
+      "held_out": "1st_test",
+      "chosen_on": "other two tests"
+    },
+    {
+      "k": 4,
+      "m": 3,
+      "failures_detected": 1,
+      "failures_total": 1,
+      "mean_fa_first_half": 0.0,
+      "controls_quiet": 0,
+      "controls_total": 3,
+      "median_lead_h": 74.0,
+      "held_out": "2nd_test",
+      "chosen_on": "other two tests"
+    },
+    {
+      "k": 10,
+      "m": 5,
+      "failures_detected": 0,
+      "failures_total": 1,
+      "mean_fa_first_half": 0.0,
+      "controls_quiet": 2,
+      "controls_total": 3,
+      "median_lead_h": null,
+      "held_out": "3rd_test",
+      "chosen_on": "other two tests"
+    }
+  ]
+}
