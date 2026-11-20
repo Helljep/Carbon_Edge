@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { wsUrl, EMPTY, EMPTY_FEEDS, RealPlantContext } from './realPlantContext';
+import { createAlertDetectors } from './alertRules';
 
 // path = backend replay endpoint, interval = seconds per replayed sample, keep = history length
 const STREAMS = {
@@ -11,6 +12,7 @@ const NAMES = Object.keys(STREAMS);
 const COMPONENT_KEYS = ['cooler', 'valve', 'pump_leak', 'accumulator'];
 const FLUSH_MS = 250;
 const RESTART_MS = 4000;
+const MAX_ALERTS = 100;
 
 /**
  * One shared connection per real-data replay stream. Messages are accumulated in refs and
@@ -18,6 +20,12 @@ const RESTART_MS = 4000;
  */
 export function RealPlantProvider({ enabled, children }) {
   const [feeds, setFeeds] = useState(EMPTY_FEEDS);
+  const [alerts, setAlerts] = useState([]);
+  const [lastMessageAt, setLastMessageAt] = useState(null);
+  const alertsRef = useRef([]);
+  const idRef = useRef(0);
+  const detectors = useRef({});
+  const lastMsgRef = useRef(null);
   const sockets = useRef({});
   const timers = useRef({});
   const live = useRef({});
@@ -32,11 +40,35 @@ export function RealPlantProvider({ enabled, children }) {
     f.latest = m;
     f.hist.push(m);
     if (f.hist.length > STREAMS[name].keep) f.hist.shift();
+    lastMsgRef.current = Date.now();
     if (name === 'hydraulic') {
       f.stats.n += 1;
       COMPONENT_KEYS.forEach((k) => { f.stats.ok[k] = (f.stats.ok[k] || 0) + (m[`ok_${k}`] ? 1 : 0); });
     } else if (name === 'energy' && m.high) {
       f.stats.flagged += 1;
+    }
+    const found = detectors.current[name] ? detectors.current[name].process(name, m, f.hist) : [];
+    if (found.length) {
+      const now = new Date();
+      const made = found.map((a) => ({
+        id: `${now.getTime()}-${idRef.current++}`,
+        title: a.title,
+        description: a.description,
+        machine: a.machine,
+        source: a.source,
+        time: now.toLocaleTimeString(),
+        timestamp: now,
+        severity: a.severity,
+        rootCause: a.rootCause,
+        rootCauseDetail: a.rootCauseDetail,
+        action: a.action,
+        additionalActions: a.additionalActions || [],
+        eventLog: a.log,
+        chartTitle: a.chartTitle,
+        rawData: { top_causes: a.topCauses || [] },
+        acknowledged: false,
+      }));
+      alertsRef.current = [...made, ...alertsRef.current].slice(0, MAX_ALERTS);
     }
     dirty.current = true;
   }, []);
@@ -46,6 +78,7 @@ export function RealPlantProvider({ enabled, children }) {
     const old = sockets.current[name];
     if (old) { old.onclose = null; old.onerror = null; old.close(); }
     live.current[name] = { ...fresh(), phase: 'connecting' };
+    detectors.current[name] = createAlertDetectors();
     dirty.current = true;
     let ws;
     try {
@@ -104,10 +137,28 @@ export function RealPlantProvider({ enabled, children }) {
           : EMPTY;
       });
       setFeeds(next);
+      setAlerts(alertsRef.current);
+      setLastMessageAt(lastMsgRef.current);
     }, FLUSH_MS);
     return () => clearInterval(id);
   }, []);
 
-  const value = useMemo(() => ({ feeds, restart: connect }), [feeds, connect]);
+  const ackAlert = useCallback((id) => {
+    alertsRef.current = alertsRef.current.map((a) => (a.id === id ? { ...a, acknowledged: true } : a));
+    dirty.current = true;
+  }, []);
+  const deleteAlert = useCallback((id) => {
+    alertsRef.current = alertsRef.current.filter((a) => a.id !== id);
+    dirty.current = true;
+  }, []);
+  const clearAlerts = useCallback(() => {
+    alertsRef.current = [];
+    dirty.current = true;
+  }, []);
+
+  const value = useMemo(
+    () => ({ feeds, restart: connect, alerts, lastMessageAt, ackAlert, deleteAlert, clearAlerts }),
+    [feeds, connect, alerts, lastMessageAt, ackAlert, deleteAlert, clearAlerts],
+  );
   return <RealPlantContext.Provider value={value}>{children}</RealPlantContext.Provider>;
 }

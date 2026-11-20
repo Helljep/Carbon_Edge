@@ -14,6 +14,14 @@ export const PHASE_LABEL = {
 export const EMPTY = { phase: 'idle', latest: null, hist: [], stats: { n: 0, ok: {}, flagged: 0 } };
 export const EMPTY_FEEDS = { bearing: EMPTY, hydraulic: EMPTY, energy: EMPTY };
 
-export const RealPlantContext = createContext({ feeds: EMPTY_FEEDS, restart: () => {} });
+export const RealPlantContext = createContext({
+  feeds: EMPTY_FEEDS,
+  restart: () => {},
+  alerts: [],
+  lastMessageAt: null,
+  ackAlert: () => {},
+  deleteAlert: () => {},
+  clearAlerts: () => {},
+});
 
 export const useRealPlant = () => useContext(RealPlantContext);

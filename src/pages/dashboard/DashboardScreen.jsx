@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import SimulationState from '../../services/SimulationState';
-import { RealPlantProvider } from '../../services/RealPlantFeed';
 import { useRealPlant } from '../../services/realPlantContext';
 import { REAL_MACHINES, DEFAULT_MACHINE, delta } from '../../services/plantStatus';
 import PlantExplorer from '../../components/PlantExplorer';
@@ -245,17 +244,6 @@ const DashboardContent = () => {
   );
 };
 
-const DashboardScreen = () => {
-  const [connected, setConnected] = useState(SimulationState.isConnected);
-  useEffect(() => {
-    const id = setInterval(() => setConnected(SimulationState.isConnected), 400);
-    return () => clearInterval(id);
-  }, []);
-  return (
-    <RealPlantProvider enabled={connected}>
-      <DashboardContent />
-    </RealPlantProvider>
-  );
-};
+const DashboardScreen = () => <DashboardContent />;
 
 export default DashboardScreen;

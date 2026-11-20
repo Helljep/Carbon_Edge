@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import SimulationPopup from './SimulationPopup';
+import { RealPlantProvider } from '../../services/RealPlantFeed';
+import { useRealPlant } from '../../services/realPlantContext';
 import { LayoutDashboard, Link as LinkIcon, Bell, Lightbulb, BarChart2, User } from 'lucide-react';
 import './MainLayout.css';
+
+// number of unacknowledged alerts, shown next to the Alerts nav item
+const AlertCount = () => {
+  const { alerts } = useRealPlant();
+  const n = alerts.filter((a) => !a.acknowledged).length;
+  if (!n) return null;
+  return (
+    <span style={{ background: 'var(--color-error)', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px', marginLeft: 4 }}>
+      {n > 99 ? '99+' : n}
+    </span>
+  );
+};
 
 const MainLayout = () => {
   const [showSimulationPopup, setShowSimulationPopup] = useState(true);
@@ -47,6 +61,7 @@ const MainLayout = () => {
             >
               <item.icon size={18} />
               <span>{item.label}</span>
+              {item.path === '/home/alerts' && <AlertCount />}
             </div>
           );
         })}
@@ -82,6 +97,7 @@ const MainLayout = () => {
           >
             <item.icon size={22} />
             <span className="bottom-nav-label">{item.label}</span>
+            {item.path === '/home/alerts' && <AlertCount />}
           </div>
         );
       })}
@@ -89,6 +105,7 @@ const MainLayout = () => {
   );
 
   return (
+    <RealPlantProvider enabled={!showSimulationPopup}>
     <div className="main-layout-root">
       {isWeb ? <TopNav /> : <MobileAppbar />}
       
@@ -102,6 +119,7 @@ const MainLayout = () => {
         <SimulationPopup onConnect={() => setShowSimulationPopup(false)} />
       )}
     </div>
+    </RealPlantProvider>
   );
 };
 
