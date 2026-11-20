@@ -2,12 +2,15 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { wsUrl, EMPTY, EMPTY_FEEDS, RealPlantContext } from './realPlantContext';
 import { createAlertDetectors } from './alertRules';
 
+// VITE_PLANT_SOURCE=live switches the plant tab from the recorded HIPE replay to the MQTT live stream
+const PLANT_PATH = import.meta.env.VITE_PLANT_SOURCE === 'live' ? '/ws/live' : '/ws/hipe';
+
 // path = backend replay endpoint, interval = seconds per replayed sample, keep = history length
 const STREAMS = {
   bearing: { path: '/ws/bearing', interval: 0.08, keep: 1000 },
   hydraulic: { path: '/ws/hydraulic', interval: 0.05, keep: 150 },
   energy: { path: '/ws/energy', interval: 0.02, keep: 192 },
-  plant: { path: '/ws/hipe', interval: 0.01, keep: 672 },
+  plant: { path: PLANT_PATH, interval: 0.01, keep: 672 },
 };
 const NAMES = Object.keys(STREAMS);
 const COMPONENT_KEYS = ['cooler', 'valve', 'pump_leak', 'accumulator'];

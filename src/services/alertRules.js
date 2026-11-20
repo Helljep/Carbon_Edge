@@ -180,7 +180,7 @@ export function createAlertDetectors() {
     const out = [];
     // Profile and calibration weeks are the data the baseline was fit on, so only the held-out
     // test weeks raise alerts (flags elsewhere would be in-sample noise).
-    if (m.split !== 'test') return out;
+    if (m.split !== 'test' && m.split !== 'live') return out;
     const common = { machine: 'ELECTRONICS PLANT', source: 'plant', chartTitle: 'Sensor Impact Analysis', topCauses: [] };
     s.run = m.high ? s.run + 1 : 0;
     if (s.run === 2 && m.index - s.lastHigh >= 8) {

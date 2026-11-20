@@ -547,6 +547,46 @@ async def hipe_stream(ws: WebSocket):
     except (WebSocketDisconnect, RuntimeError):
         pass
 
+@app.get("/live/status")
+def live_status():
+    """State of the MQTT bridge (starts it on first call)."""
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from mqtt_bridge import get_bridge
+        return get_bridge().status()
+    except Exception as e:
+        return {"connected": False, "error": f"MQTT bridge unavailable: {e}"}
+
+
+@app.websocket("/ws/live")
+async def live_stream(ws: WebSocket):
+    """Live plant meter stream from MQTT: finished 15-minute intervals as they arrive."""
+    await ws.accept()
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from mqtt_bridge import get_bridge
+        bridge = get_bridge()
+    except Exception as e:
+        await ws.send_json({"type": "error", "message": f"MQTT bridge unavailable (pip install paho-mqtt): {e}"})
+        await ws.close()
+        return
+    try:
+        msgs, sent = bridge.snapshot()
+        for m in msgs:
+            await ws.send_json(m)
+        while True:
+            await asyncio.sleep(0.5)
+            msgs, total = bridge.snapshot()
+            new = total - sent
+            if new > 0:
+                for m in msgs[-min(new, len(msgs)):]:
+                    await ws.send_json(m)
+                sent = total
+    except (WebSocketDisconnect, RuntimeError):
+        pass
+
 # ---------------- Health Check ----------------
 
 @app.get("/health")

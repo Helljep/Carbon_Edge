@@ -18,6 +18,7 @@ const MACHINE_COLORS = ['#00E5FF', '#FFB300', '#A78BFA', '#EF4444', '#26e5a2', '
 export default function PlantBaseLoadPanel() {
   const { feeds, restart } = useRealPlant();
   const { phase, latest, hist, stats } = feeds.plant;
+  const isLive = import.meta.env.VITE_PLANT_SOURCE === 'live';
 
   const data = {
     labels: hist.map((p) => p.time.slice(5, 16)),
@@ -48,9 +49,14 @@ export default function PlantBaseLoadPanel() {
     <NeonCard>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 600, color: '#e2e8f0' }}>Real Plant Meters (electronics plant, HIPE 2017)</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#e2e8f0' }}>
+            {isLive ? 'Live Plant Meters (MQTT)' : 'Real Plant Meters (electronics plant, HIPE 2017)'}
+          </div>
           <div style={{ fontSize: 12, color: '#94a3b8' }}>
-            Three recorded months, 10 sub-metered machines plus the main meter. The baseline is the mean of the same time in the previous two weeks, tested on December; no fault labels exist. {PHASE_LABEL[phase]}
+            {isLive
+              ? 'Readings arrive over MQTT. The baseline is the mean of the same time in the previous two weeks; it shows "learning" until the plant has enough of its own history, and it never flags before that. No fault labels exist. '
+              : 'Three recorded months, 10 sub-metered machines plus the main meter. The baseline is the mean of the same time in the previous two weeks, tested on December; no fault labels exist. '}
+            {PHASE_LABEL[phase]}
           </div>
         </div>
         <button

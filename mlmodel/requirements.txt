@@ -6,3 +6,6 @@ pandas
 scikit-learn
 joblib
 tensorflow
+
+paho-mqtt
+amqtt  # local test broker only (mqtt_dev_broker.py)
