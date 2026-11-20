@@ -54,7 +54,7 @@ Same method, one independent model per bearing, all 3 IMS tests (12 bearing runs
 ## Other machines (summary; details in README)
 - **Hydraulic rig (ZeMA, UCI #447):** only 21 of 2,205 cycles are fully healthy, so no unsupervised baseline is evaluated. Random-forest diagnosis with grouped CV (by run / by unseen fault combination): cooler 97.8% / 95.5%, pump leakage 99.1% / 99.1%, accumulator 78.9% / 75.7%, valve 66.6% / 64.3% (weak). Majority baselines 33.6%, 55.4%, 36.6%, 51.0%.
 - **Steel plant energy (UCI #851):** calendar-only expected-usage model, held-out Oct-Dec MAE 11.1 vs 28.3 kWh naive. CO2 is derived from kWh. No waste labels, so flags ("unexpectedly high", 2.8% of intervals) are not validated detections.
-- **Electronics plant (HIPE, real smart meters, 3 months):** median weekday/weekend profile (Oct-Nov), threshold from early Dec, tested on Dec 10-31: MAE 3.35 kW vs 6.13 kW naive mean, but a "same time last week" rule is better (2.79 kW). Base load is about 45% of energy; the 10 sub-metered machines are only 4.1% of plant energy. No fault or waste labels, so flags are not validated.
+- **Electronics plant (HIPE, real smart meters, 3 months):** four causal baselines compared; the winner (mean of the last two weeks) is chosen on calibration weeks only. Held-out Dec 10-31 normal days: MAE 2.66 kW vs 3.35 (profile), 2.79 (last week), 6.13 (naive mean). The candidate list was widened after seeing test results, so treat it as exploratory. Base load is about 45% of energy; the 10 sub-metered machines are only 4.1% of plant energy. No fault or waste labels, so flags are not validated.
 
 ## Limitations
 - **One lab rig family.** Same bearing model, speed and load in all three tests. No evidence yet for other machines or plants.

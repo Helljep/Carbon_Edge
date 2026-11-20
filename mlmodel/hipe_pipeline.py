@@ -76,19 +76,45 @@ def load():
     return df, machines
 
 
+WEEK = 672  # intervals per week
+
+
+def candidates(df, profile):
+    """Expected-power candidates. All are causal: they only use data available before each interval
+    (the profile is fit on the profile weeks; 'last week' uses the actual value 7 days earlier)."""
+    prof = profile.reindex(df["wslot"]).values
+    main = df["MainTerminal"]
+    lw1 = main.shift(WEEK).values
+    lw2 = main.shift(2 * WEEK).values
+    last_week = np.where(np.isnan(lw1), prof, lw1)                     # first week falls back to the profile
+    last_two = np.where(np.isnan(lw2), last_week, (lw1 + lw2) / 2.0)   # mean of the last two weeks
+    return {
+        "profile_median": prof,
+        "last_week": last_week,
+        "last_two_weeks_mean": last_two,
+        "blend_profile_last_week": 0.5 * prof + 0.5 * last_week,
+    }
+
+
 def fit(df):
-    """Median profile per (weekday, 15-min slot) over the profile weeks, base load, calibrated threshold."""
+    """Profile + base load, then choose the baseline with the lowest MAE on the CALIBRATION weeks
+    (never on the test weeks) and calibrate the alert threshold on its calibration residuals."""
     prof = df[df["split"] == "profile"]
     profile = prof.groupby("wslot")["MainTerminal"].median()
     base_kw = float(np.percentile(prof["MainTerminal"], BASE_PCTL))
-    calib = df[df["split"] == "calibration"]
-    resid = calib["MainTerminal"].values - profile.reindex(calib["wslot"]).values
+    cands = candidates(df, profile)
+    is_cal = (df["split"] == "calibration").values
+    y = df["MainTerminal"].values
+    cal_mae = {k: _mae(y[is_cal], v[is_cal]) for k, v in cands.items()}
+    best = min(cal_mae, key=cal_mae.get)
+    resid = y[is_cal] - cands[best][is_cal]
     thr = float(np.percentile(resid, 95))
-    return {"profile": profile, "base_kw": base_kw, "threshold_kw": max(thr, 1.0)}
+    return {"profile": profile, "base_kw": base_kw, "threshold_kw": max(thr, 1.0),
+            "baseline": best, "calibration_mae": cal_mae}
 
 
 def expected(df, model):
-    return model["profile"].reindex(df["wslot"]).values
+    return candidates(df, model["profile"])[model["baseline"]]
 
 
 def _mae(y, p):
@@ -107,8 +133,7 @@ def evaluate():
 
     # simple reference models on the same test intervals
     prof_mean = float(df[df["split"] == "profile"]["MainTerminal"].mean())
-    last_week = df["MainTerminal"].shift(672).loc[test.index]
-    ok_lw = ~last_week.isna()
+    cands = candidates(df, model["profile"])
 
     def stats(sub):
         y, p = sub["MainTerminal"].values, sub["expected_kw"].values
@@ -121,8 +146,17 @@ def evaluate():
         }
 
     t_normal = stats(normal)
-    t_normal["last_week_same_slot_mae_kw"] = round(_mae(normal["MainTerminal"].values, last_week.loc[normal.index].values), 2)
     t_hol = stats(hols)
+    pos = {t: i for i, t in enumerate(df.index)}
+    ni = [pos[t] for t in normal.index]
+    hi = [pos[t] for t in hols.index]
+    y_all = df["MainTerminal"].values
+    comparison = {
+        k: {"calibration_mae_kw": round(model["calibration_mae"][k], 2),
+            "test_normal_mae_kw": round(_mae(y_all[ni], v[ni]), 2),
+            "test_holiday_mae_kw": round(_mae(y_all[hi], v[hi]), 2)}
+        for k, v in cands.items()
+    }
 
     wk_kwh = float(df["MainTerminal"].sum() * INTERVAL_H)
     base_kwh = float(np.minimum(df["MainTerminal"], model["base_kw"]).sum() * INTERVAL_H)
@@ -138,6 +172,9 @@ def evaluate():
         "holidays_in_test": sorted(TEST_HOLIDAYS),
         "base_load_kw": round(model["base_kw"], 2),
         "threshold_kw": round(model["threshold_kw"], 2),
+        "selected_baseline": model["baseline"],
+        "selection_rule": "lowest MAE on the calibration weeks (not the test weeks)",
+        "baseline_comparison": comparison,
         "heldout_normal_days": t_normal,
         "heldout_holidays": t_hol,
         "weekend_mean_kw": round(float(weekend["MainTerminal"].mean()), 2),

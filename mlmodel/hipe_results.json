@@ -13,19 +13,42 @@
     "2017-12-31"
   ],
   "base_load_kw": 6.34,
-  "threshold_kw": 5.07,
+  "threshold_kw": 6.56,
+  "selected_baseline": "last_two_weeks_mean",
+  "selection_rule": "lowest MAE on the calibration weeks (not the test weeks)",
+  "baseline_comparison": {
+    "profile_median": {
+      "calibration_mae_kw": 2.36,
+      "test_normal_mae_kw": 3.35,
+      "test_holiday_mae_kw": 3.83
+    },
+    "last_week": {
+      "calibration_mae_kw": 2.81,
+      "test_normal_mae_kw": 2.79,
+      "test_holiday_mae_kw": 3.14
+    },
+    "last_two_weeks_mean": {
+      "calibration_mae_kw": 2.26,
+      "test_normal_mae_kw": 2.66,
+      "test_holiday_mae_kw": 3.21
+    },
+    "blend_profile_last_week": {
+      "calibration_mae_kw": 2.37,
+      "test_normal_mae_kw": 2.86,
+      "test_holiday_mae_kw": 3.39
+    }
+  },
   "heldout_normal_days": {
     "intervals": 1728,
-    "mae_kw": 3.35,
-    "mape_pct": 26.2,
+    "mae_kw": 2.66,
+    "mape_pct": 21.6,
     "naive_mean_mae_kw": 6.13,
-    "flagged_pct": 0.9,
-    "last_week_same_slot_mae_kw": 2.79
+    "flagged_pct": 0.6
   },
   "heldout_holidays": {
     "intervals": 384,
-    "mae_kw": 3.83,
-    "mape_pct": 37.1,
+    "mae_kw": 3.21,
+    "mape_pct": 31.6,
     "naive_mean_mae_kw": 5.76,
     "flagged_pct": 0.0
   },
