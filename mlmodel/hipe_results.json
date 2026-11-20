@@ -1,0 +1,29 @@
+{
+  "dataset": "HIPE one-week sample (2017-10-23..29), 10 machines + main terminal",
+  "intervals": 672,
+  "split": {
+    "profile_days": "Mon-Tue",
+    "threshold_day": "Wed",
+    "test_days": "Thu-Fri"
+  },
+  "base_load_kw": 7.07,
+  "threshold_kw": 8.23,
+  "heldout_weekday": {
+    "mae_kw": 2.51,
+    "mape_pct": 14.6,
+    "naive_mean_mae_kw": 9.21,
+    "flagged_pct": 2.1
+  },
+  "weekend_mean_kw": 7.73,
+  "total_kwh": 2706.0,
+  "base_load_kwh": 1188.3,
+  "base_load_share_pct": 43.9,
+  "metered_machine_kwh": 103.7,
+  "metered_machine_share_pct": 3.8,
+  "idle_interval_pct": 75.3,
+  "notes": [
+    "No fault or waste labels exist, so flags are unvalidated.",
+    "One week only: the weekday profile uses 2 days, and no weekend day is available for learning.",
+    "About 96% of plant energy is not covered by the 10 sub-metered machines."
+  ]
+}

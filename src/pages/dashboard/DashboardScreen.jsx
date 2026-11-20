@@ -11,6 +11,7 @@ import LiveTelemetryChart from '../../components/LiveTelemetryChart';
 import BearingHealthPanel from '../../components/BearingHealthPanel';
 import HydraulicDiagnosisPanel from '../../components/HydraulicDiagnosisPanel';
 import PlantEnergyPanel from '../../components/PlantEnergyPanel';
+import PlantBaseLoadPanel from '../../components/PlantBaseLoadPanel';
 
 import {
   Thermometer, Zap, Settings, Activity, Gauge, Droplets, Leaf, TrendingUp,
@@ -62,6 +63,19 @@ function buildKpis(machine, feeds) {
       kpi('Accumulator (model)', fmt(m.pred_accumulator, 0), 'bar', Gauge, m.ok_accumulator ? 'var(--color-success)' : 'var(--color-error)'),
     ];
   }
+  if (machine === 'plant') {
+    const baseShare = m.cum_kwh > 0 ? (m.cum_base_kwh / m.cum_kwh) * 100 : 0;
+    return [
+      kpi('Main Meter', fmt(m.main_kw, 1), 'kW', Zap, m.high ? 'var(--color-warning)' : 'var(--color-accent)', hist, (x) => x.main_kw),
+      kpi('Expected Now', fmt(m.expected_kw, 1), 'kW', Settings, 'var(--color-success)'),
+      kpi('Base Load', fmt(m.base_kw, 1), 'kW', Gauge, 'var(--color-warning)'),
+      kpi('Metered Machines', fmt(m.metered_kw, 1), 'kW', Activity, 'var(--color-accent)', hist, (x) => x.metered_kw),
+      kpi('Unmetered Load', fmt(m.unmetered_kw, 1), 'kW', Zap, 'var(--color-warning)', hist, (x) => x.unmetered_kw),
+      kpi('Energy So Far', Number(m.cum_kwh).toLocaleString(), 'kWh', TrendingUp, 'var(--color-accent)'),
+      kpi('Base Load Share', fmt(baseShare, 0), '%', Gauge, 'var(--color-warning)'),
+      kpi('Standby Energy', Number(m.cum_idle_kwh).toLocaleString(), 'kWh', Timer, 'var(--color-warning)'),
+    ];
+  }
   const share = m.cum_kwh > 0 ? (m.cum_excess_kwh / m.cum_kwh) * 100 : 0;
   return [
     kpi('Usage Now', fmt(m.kwh, 1), 'kWh/15min', Zap, m.high ? 'var(--color-warning)' : 'var(--color-accent)', hist, (x) => x.kwh, 'down'),
@@ -95,6 +109,16 @@ const CHARTS = {
       extra: { label: 'Expected kWh', y: h.map((p) => p.expected), color: '#94a3b8' },
     }),
     'Cumulative CO₂': (h) => ({ color: '#26e5a2', label: 'Cumulative CO₂ (t)', x: h.map((p) => p.date.slice(5, 16)), y: h.map((p) => p.cum_tco2) }),
+  },
+  plant: {
+    'Main vs expected': (h) => ({
+      color: '#00E676', label: 'Main meter (kW)', x: h.map((p) => p.time.slice(5, 16)), y: h.map((p) => p.main_kw),
+      extra: { label: 'Expected (kW)', y: h.map((p) => p.expected_kw), color: '#94a3b8' },
+    }),
+    'Metered vs unmetered': (h) => ({
+      color: '#00E5FF', label: 'Sub-metered machines (kW)', x: h.map((p) => p.time.slice(5, 16)), y: h.map((p) => p.metered_kw),
+      extra: { label: 'Unmetered (kW)', y: h.map((p) => p.unmetered_kw), color: '#FFB300' },
+    }),
   },
 };
 
@@ -183,6 +207,7 @@ const DashboardContent = () => {
   const DetailPanel = () => {
     if (selectedMachine === 'bearing') return <BearingHealthPanel />;
     if (selectedMachine === 'hydraulic') return <HydraulicDiagnosisPanel />;
+    if (selectedMachine === 'plant') return <PlantBaseLoadPanel />;
     return <PlantEnergyPanel />;
   };
 

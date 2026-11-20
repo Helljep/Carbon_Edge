@@ -69,3 +69,5 @@ data/ims/
 data/processed/ims_scored.csv
 data/hydraulic/
 data/steel/
+
+data/hipe/

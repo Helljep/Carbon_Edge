@@ -4,7 +4,7 @@ import { useRealPlant } from '../services/realPlantContext';
 import { REAL_MACHINES, LEVEL_COLOR, machineStatus } from '../services/plantStatus';
 import './PlantHeatmap.css';
 
-const POSITIONS = [80, 240, 400];
+const POSITIONS = [30, 150, 270, 390];
 
 /** Live status of each real machine, taken from its latest replayed message. */
 const PlantHeatmap = ({ isMobile = false, selectedMachine = 'bearing' }) => {

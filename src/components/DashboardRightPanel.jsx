@@ -59,6 +59,8 @@ const DashboardRightPanel = ({ isMobile = false, selectedMachine = 'bearing' }) 
   const bs = machineStatus('bearing', feeds);
   const hs = machineStatus('hydraulic', feeds);
   const es = machineStatus('energy', feeds);
+  const ps = machineStatus('plant', feeds);
+  const p = feeds.plant.latest;
 
   const bearingTitle = !b
     ? 'Bearing rig\nwaiting for data'
@@ -77,6 +79,12 @@ const DashboardRightPanel = ({ isMobile = false, selectedMachine = 'bearing' }) 
       ? `Unexpectedly high usage\n+${(e.kwh - e.expected).toFixed(0)} kWh vs expected`
       : 'Plant energy\nwithin expected range';
 
+  const plantTitle = !p
+    ? ['Electronics plant', 'waiting for data'].join('\n')
+    : p.high
+      ? ['Plant above baseline', `+${(p.main_kw - p.expected_kw).toFixed(1)} kW vs expected`].join('\n')
+      : ['Electronics plant', `${p.main_kw.toFixed(1)} kW, within baseline`].join('\n');
+
   const excessPct = e && e.cum_kwh > 0 ? (e.cum_excess_kwh / e.cum_kwh) * 100 : null;
 
   return (
@@ -87,6 +95,7 @@ const DashboardRightPanel = ({ isMobile = false, selectedMachine = 'bearing' }) 
         <AlertCard title={bearingTitle} color={LEVEL_COLOR[bs.level]} icon={Activity} isSelected={selectedMachine === 'bearing'} />
         <AlertCard title={hydTitle} color={LEVEL_COLOR[hs.level]} icon={Droplets} isSelected={selectedMachine === 'hydraulic'} />
         <AlertCard title={energyTitle} color={LEVEL_COLOR[es.level]} icon={Zap} isSelected={selectedMachine === 'energy'} />
+        <AlertCard title={plantTitle} color={LEVEL_COLOR[ps.level]} icon={Zap} isSelected={selectedMachine === 'plant'} />
 
         <div className="divider"></div>
 

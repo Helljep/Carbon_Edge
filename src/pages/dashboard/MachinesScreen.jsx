@@ -32,6 +32,10 @@ const MachinesScreen = () => {
     { label: 'OIL TEMPERATURE', value: latest.TS1_mean.toFixed(1), unit: '°C', icon: Thermometer, color: 'var(--color-orange)' },
     { label: 'MOTOR POWER', value: latest.EPS1_mean.toFixed(0), unit: 'W', icon: Zap, color: 'var(--color-success)' },
     { label: 'PRESSURE', value: latest.PS1_mean.toFixed(0), unit: 'bar', icon: Gauge, color: 'var(--color-purple)' },
+  ] : selected === 'plant' ? [
+    { label: 'MAIN METER', value: latest.main_kw.toFixed(1), unit: 'kW', icon: Zap, color: 'var(--color-orange)' },
+    { label: 'METERED MACHINES', value: latest.metered_kw.toFixed(1), unit: 'kW', icon: Activity, color: 'var(--color-success)' },
+    { label: 'BASE LOAD', value: latest.base_kw.toFixed(1), unit: 'kW', icon: Gauge, color: 'var(--color-purple)' },
   ] : [
     { label: 'USAGE (INTERVAL)', value: latest.kwh.toFixed(1), unit: 'kWh', icon: Zap, color: 'var(--color-orange)' },
     { label: 'EXPECTED', value: latest.expected.toFixed(1), unit: 'kWh', icon: Gauge, color: 'var(--color-success)' },
@@ -94,6 +98,16 @@ const MachinesScreen = () => {
     } else if (selected === 'bearing') {
       const pct = Math.max(0, Math.min(100, 100 - (latest.error / latest.threshold) * 50));
       body = <HealthItem name="Bearing (score vs alarm threshold)" pct={pct} text={`${(latest.error / latest.threshold).toFixed(2)}x`} />;
+    } else if (selected === 'plant') {
+      const idle = latest.cum_kwh > 0 ? (latest.cum_idle_kwh / latest.cum_kwh) * 100 : 0;
+      body = (
+        <>
+          <HealthItem name="Energy used while machines idle" pct={100 - idle} text={`${idle.toFixed(0)}% idle`} />
+          {Object.entries(latest.machines).filter(([, kw]) => kw > 0.05).map(([n, kw]) => (
+            <HealthItem key={n} name={n} pct={100} text={`${kw.toFixed(2)} kW`} />
+          ))}
+        </>
+      );
     } else {
       const excess = Math.max(0, latest.cum_excess_kwh);
       const pct = latest.cum_kwh > 0 ? Math.max(0, 100 - (excess / latest.cum_kwh) * 100) : 100;

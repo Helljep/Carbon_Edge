@@ -12,7 +12,7 @@ export const PHASE_LABEL = {
 };
 
 export const EMPTY = { phase: 'idle', latest: null, hist: [], stats: { n: 0, ok: {}, flagged: 0 } };
-export const EMPTY_FEEDS = { bearing: EMPTY, hydraulic: EMPTY, energy: EMPTY };
+export const EMPTY_FEEDS = { bearing: EMPTY, hydraulic: EMPTY, energy: EMPTY, plant: EMPTY };
 
 export const RealPlantContext = createContext({
   feeds: EMPTY_FEEDS,

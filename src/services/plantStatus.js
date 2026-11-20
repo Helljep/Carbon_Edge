@@ -3,6 +3,7 @@ export const REAL_MACHINES = [
   { id: 'bearing', title: 'Bearing Test Rig', group: 'Rotating machinery', source: 'NASA IMS run-to-failure vibration data' },
   { id: 'hydraulic', title: 'Hydraulic Rig', group: 'Rotating machinery', source: 'ZeMA hydraulic test rig (UCI #447)' },
   { id: 'energy', title: 'Steel Plant Energy', group: 'Plant', source: 'UCI steel industry energy data (2018)' },
+  { id: 'plant', title: 'Electronics Plant (HIPE)', group: 'Plant', source: 'HIPE smart-meter data, 1 week, KIT Germany (2017)' },
 ];
 
 export const DEFAULT_MACHINE = 'bearing';
@@ -36,6 +37,9 @@ export function machineStatus(id, feeds) {
   }
   if (id === 'energy') {
     return m.high ? { level: 'warn', text: 'Unexpectedly high usage' } : { level: 'ok', text: 'Within expected range' };
+  }
+  if (id === 'plant') {
+    return m.high ? { level: 'warn', text: 'Above weekday baseline' } : { level: 'ok', text: m.idle ? 'Within baseline (machines idle)' : 'Within baseline' };
   }
   return { level: 'idle', text: '' };
 }

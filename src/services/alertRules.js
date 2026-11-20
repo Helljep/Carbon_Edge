@@ -55,6 +55,7 @@ export function createAlertDetectors() {
     bearing: { alarmed: false, escalated: false, lastWatch: -1e9 },
     hydraulic: { last: null, same: 0, alerted: null, lastAlertIdx: -1e9 },
     energy: { run: 0, lastAlertIdx: -1e9 },
+    plant: { run: 0, lastHigh: -1e9, idleRun: 0, lastIdle: -1e9 },
   };
 
   const bearing = (m, hist) => {
@@ -174,11 +175,53 @@ export function createAlertDetectors() {
     }];
   };
 
+  const plant = (m) => {
+    const s = st.plant;
+    const out = [];
+    const common = { machine: 'ELECTRONICS PLANT', source: 'plant', chartTitle: 'Sensor Impact Analysis', topCauses: [] };
+    s.run = m.high ? s.run + 1 : 0;
+    if (s.run === 2 && m.index - s.lastHigh >= 8) {
+      s.lastHigh = m.index;
+      const excess = m.main_kw - m.expected_kw;
+      out.push({
+        ...common, severity: excess > 2 * m.threshold_kw ? 'High' : 'Warning',
+        title: 'Plant power above weekday baseline',
+        description: `Main meter ${m.main_kw.toFixed(1)} kW vs ${m.expected_kw.toFixed(1)} kW expected for this time (${m.time}), 2 intervals in a row.`,
+        rootCause: 'Plant draw is higher than the learned weekday pattern for this time of day',
+        rootCauseDetail: `About +${excess.toFixed(1)} kW (alert threshold ${m.threshold_kw.toFixed(1)} kW). Only ${m.metered_kw.toFixed(1)} kW of that is on the 10 sub-metered machines, so the cause is probably in unmetered load (HVAC, lighting, other equipment) or a production change.`,
+        action: 'Check what is running now beyond the sub-metered machines, and whether the schedule changed.',
+        additionalActions: ['Review HVAC and compressed-air load', 'Compare with the same time on previous days'],
+        log: `Rule: main power > weekday profile + ${m.threshold_kw.toFixed(1)} kW for 2 consecutive 15-min intervals; at most one per 2 h
+Interval ${m.index + 1}/${m.total}  ${m.time}
+Main ${m.main_kw.toFixed(2)} kW  Expected ${m.expected_kw.toFixed(2)} kW
+Sub-metered machines: ${m.metered_kw.toFixed(2)} kW`,
+      });
+    }
+    s.idleRun = m.idle && m.main_kw > 1.6 * m.base_kw ? s.idleRun + 1 : 0;
+    if (s.idleRun === 4 && m.index - s.lastIdle >= 96) {
+      s.lastIdle = m.index;
+      out.push({
+        ...common, severity: 'Low',
+        title: 'High plant load while no sub-metered machine runs',
+        description: `For 1 hour the plant drew ${m.main_kw.toFixed(1)} kW (base load ${m.base_kw.toFixed(1)} kW) while the 10 metered machines were idle (${m.time}).`,
+        rootCause: 'Load not explained by the metered machines',
+        rootCauseDetail: 'This is a standby / unmetered-load indicator, not a fault. It may be legitimate (HVAC, lighting, other lines). Base load is a large share of plant energy in this data.',
+        action: 'Identify the unmetered loads and check whether they can be switched off out of hours.',
+        additionalActions: ['Add sub-meters on HVAC and lighting circuits'],
+        log: `Rule: main > 1.6 x base load while all metered machines < 0.5 kW, 4 intervals in a row; at most one per day
+Interval ${m.index + 1}/${m.total}  ${m.time}
+Main ${m.main_kw.toFixed(2)} kW  Base ${m.base_kw.toFixed(2)} kW  Metered ${m.metered_kw.toFixed(2)} kW`,
+      });
+    }
+    return out;
+  };
+
   return {
     process(name, m, hist) {
       if (name === 'bearing') return bearing(m, hist);
       if (name === 'hydraulic') return hydraulic(m);
       if (name === 'energy') return energy(m);
+      if (name === 'plant') return plant(m);
       return [];
     },
   };

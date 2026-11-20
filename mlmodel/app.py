@@ -525,6 +525,28 @@ async def energy_stream(ws: WebSocket):
     except (WebSocketDisconnect, RuntimeError):
         pass
 
+@app.websocket("/ws/hipe")
+async def hipe_stream(ws: WebSocket):
+    """Replay of the real HIPE plant week (15-min intervals) against its weekday baseline."""
+    await ws.accept()
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import hipe_pipeline as hp
+        rows = hp.build_stream()
+    except Exception as e:
+        await ws.send_json({"type": "error", "message": f"run hipe_pipeline.py extract first ({e})"})
+        await ws.close()
+        return
+    interval = _interval(ws, 0.03)
+    try:
+        for r in rows:
+            await ws.send_json(r)
+            await asyncio.sleep(interval)
+        await ws.send_json({"type": "done"})
+    except (WebSocketDisconnect, RuntimeError):
+        pass
+
 # ---------------- Health Check ----------------
 
 @app.get("/health")

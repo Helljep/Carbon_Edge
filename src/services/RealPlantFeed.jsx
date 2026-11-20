@@ -7,6 +7,7 @@ const STREAMS = {
   bearing: { path: '/ws/bearing', interval: 0.08, keep: 1000 },
   hydraulic: { path: '/ws/hydraulic', interval: 0.05, keep: 150 },
   energy: { path: '/ws/energy', interval: 0.02, keep: 192 },
+  plant: { path: '/ws/hipe', interval: 0.03, keep: 672 },
 };
 const NAMES = Object.keys(STREAMS);
 const COMPONENT_KEYS = ['cooler', 'valve', 'pump_leak', 'accumulator'];
@@ -44,7 +45,7 @@ export function RealPlantProvider({ enabled, children }) {
     if (name === 'hydraulic') {
       f.stats.n += 1;
       COMPONENT_KEYS.forEach((k) => { f.stats.ok[k] = (f.stats.ok[k] || 0) + (m[`ok_${k}`] ? 1 : 0); });
-    } else if (name === 'energy' && m.high) {
+    } else if ((name === 'energy' || name === 'plant') && m.high) {
       f.stats.flagged += 1;
     }
     const found = detectors.current[name] ? detectors.current[name].process(name, m, f.hist) : [];

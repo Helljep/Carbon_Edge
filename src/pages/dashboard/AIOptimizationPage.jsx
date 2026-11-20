@@ -73,6 +73,7 @@ const RANK = { High: 3, Warning: 2, Low: 1 };
 const trendOf = (id, hist) => {
   if (id === 'bearing') return { label: 'Anomaly score', data: hist.map((m, i) => ({ time: i, score: m.error })) };
   if (id === 'hydraulic') return { label: 'Components diagnosed degraded', data: hist.map((m, i) => ({ time: i, score: degradedComponents(m).length })) };
+  if (id === 'plant') return { label: 'kW above weekday baseline', data: hist.map((m, i) => ({ time: i, score: Math.max(0, m.main_kw - m.expected_kw) })) };
   return { label: 'kWh above expected', data: hist.map((m, i) => ({ time: i, score: Math.max(0, m.kwh - m.expected) })) };
 };
 
@@ -86,6 +87,11 @@ const metricsOf = (id, m) => {
     { label: 'MOTOR POWER', value: `${m.EPS1_mean.toFixed(0)} W`, icon: ShieldCheck, color: 'var(--color-accent)' },
     { label: 'OIL TEMP', value: `${m.TS1_mean.toFixed(1)} C`, icon: Scale, color: 'var(--color-lime)' },
     { label: 'PRESSURE', value: `${m.PS1_mean.toFixed(0)} bar`, icon: TrendingUp, color: 'var(--color-orange)' },
+  ];
+  if (id === 'plant') return [
+    { label: 'MAIN METER', value: `${m.main_kw.toFixed(1)} kW`, icon: ShieldCheck, color: 'var(--color-accent)' },
+    { label: 'EXPECTED', value: `${m.expected_kw.toFixed(1)} kW`, icon: Scale, color: 'var(--color-lime)' },
+    { label: 'BASE LOAD', value: `${m.base_kw.toFixed(1)} kW`, icon: TrendingUp, color: 'var(--color-orange)' },
   ];
   return [
     { label: 'USAGE (INTERVAL)', value: `${m.kwh.toFixed(1)} kWh`, icon: ShieldCheck, color: 'var(--color-accent)' },
