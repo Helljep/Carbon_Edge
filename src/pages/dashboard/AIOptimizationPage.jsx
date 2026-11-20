@@ -4,6 +4,7 @@ import { Brain, BarChart2, TrendingUp, Activity, Cpu, CheckCircle, ShieldCheck, 
 import SimulationState from '../../services/SimulationState';
 import './DashboardPages.css';
 import './AIOptimization.css'; // Create specific styles if needed
+import SimulatedBadge from '../../components/SimulatedBadge';
 
 class HardcodedDataSimulator {
   constructor() {
@@ -258,7 +259,8 @@ const AIOptimizationPage = () => {
           <div className="header-left">
             <div className="live-status-row">
               <LivePulse />
-              <span className="live-text">LIVE MONITORING</span>
+              <span className="live-text">SIMULATED MONITORING</span>
+              <SimulatedBadge style={{ marginLeft: 8 }} />
             </div>
             <h1 className="plant-id">{prediction.plantId.toUpperCase()}</h1>
             <div className="timestamp-text">{prediction.timestamp}</div>

@@ -1,35 +1,8 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
-import MachineData from '../data/machineData'; // I will create this static data file later
+import { useRealPlant } from '../services/realPlantContext';
+import { REAL_MACHINES, DEFAULT_MACHINE, LEVEL_COLOR, machineStatus } from '../services/plantStatus';
 import './PlantExplorer.css';
-
-// Using mock static data to match Flutter exactly
-const ALL_DATA = {
-  "Kilns": [
-    { title: "Kiln A", color: "var(--color-success)" },
-    { title: "Kiln B", color: "var(--color-success)" },
-    { title: "Kiln C", color: "var(--color-success)" },
-  ],
-  "Furnaces": [
-    { title: "Furnace Line 1", color: "var(--color-success)" },
-    { title: "Furnace Line 2", color: "var(--color-success)" },
-    { title: "Furnace Line 3", color: "var(--color-warning)" },
-  ],
-  "Motors": [
-    { title: "Motor 1", color: "var(--color-success)" },
-    { title: "Motor 7", color: "var(--color-error)" },
-  ],
-  "Fans": [
-    { title: "Fans 1", color: "var(--color-success)" },
-  ],
-  "Compressors": [
-    { title: "Machine", color: "var(--color-success)" },
-  ],
-  "Mills": [
-    { title: "Mills", color: "var(--color-success)" },
-    { title: "Compressors", color: "var(--color-success)" },
-  ],
-};
 
 const Section = ({ title, items, selectedItem, onSelect }) => {
   const [expanded, setExpanded] = useState(true);
@@ -45,8 +18,8 @@ const Section = ({ title, items, selectedItem, onSelect }) => {
           {items.map((item, idx) => (
             <div
               key={idx}
-              className={`explorer-item ${selectedItem === item.title ? 'selected' : ''}`}
-              onClick={() => onSelect(item.title)}
+              className={`explorer-item ${selectedItem === item.id ? 'selected' : ''}`}
+              onClick={() => onSelect(item.id)}
             >
               <div
                 className="status-dot"
@@ -55,7 +28,7 @@ const Section = ({ title, items, selectedItem, onSelect }) => {
                   boxShadow: `0 0 4px 1px ${item.color}80`
                 }}
               ></div>
-              <span className="item-title" style={{ color: selectedItem === item.title ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}>
+              <span className="item-title" style={{ color: selectedItem === item.id ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}>
                 {item.title}
               </span>
             </div>
@@ -67,27 +40,29 @@ const Section = ({ title, items, selectedItem, onSelect }) => {
 };
 
 const PlantExplorer = ({ onMachineSelected }) => {
-  const [selectedItem, setSelectedItem] = useState('Kiln A');
+  const { feeds } = useRealPlant();
+  const [selectedItem, setSelectedItem] = useState(DEFAULT_MACHINE);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const getFilteredData = () => {
-    if (!searchQuery) return ALL_DATA;
-    
-    const filtered = {};
-    Object.entries(ALL_DATA).forEach(([section, items]) => {
-      const match = items.filter(i => i.title.toLowerCase().includes(searchQuery.toLowerCase()));
-      if (match.length > 0) {
-        filtered[section] = match;
-      }
+  // group the real machines; the dot colour is each machine's live status
+  const allData = {};
+  REAL_MACHINES.forEach((m) => {
+    (allData[m.group] = allData[m.group] || []).push({
+      id: m.id,
+      title: m.title,
+      color: LEVEL_COLOR[machineStatus(m.id, feeds).level],
     });
-    return filtered;
-  };
+  });
 
-  const filteredData = getFilteredData();
+  const filteredData = {};
+  Object.entries(allData).forEach(([section, items]) => {
+    const match = items.filter((i) => i.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (match.length > 0) filteredData[section] = match;
+  });
 
-  const handleSelect = (title) => {
-    setSelectedItem(title);
-    if (onMachineSelected) onMachineSelected(title);
+  const handleSelect = (id) => {
+    setSelectedItem(id);
+    if (onMachineSelected) onMachineSelected(id);
   };
 
   return (

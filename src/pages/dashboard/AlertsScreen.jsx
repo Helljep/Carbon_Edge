@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { ShieldAlert, CheckCircle2, XCircle, AlertTriangle, AlertCircle, TrendingUp, Info } from 'lucide-react';
 import './DashboardPages.css';
+import SimulatedBadge from '../../components/SimulatedBadge';
 
 // Global Config
 const AlertConfig = {
@@ -443,6 +444,7 @@ const AlertsScreen = () => {
 
   return (
     <div className="alerts-container">
+      <div style={{ padding: '8px 16px 0' }}><SimulatedBadge /></div>
       {StatusBar()}
       <div className={`alerts-layout ${isWide ? 'wide' : 'narrow'}`}>
         <div className="alerts-left">

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,11 +11,9 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import NeonCard from './NeonCard';
+import { useRealPlant, PHASE_LABEL } from '../services/realPlantContext';
 
 ChartJS.register(CategoryScale, LinearScale, LogarithmicScale, PointElement, LineElement, Tooltip, Legend);
-
-const BASE_WS = import.meta.env.VITE_KILN_WS_URL || 'ws://localhost:8000/ws';
-const BEARING_WS = BASE_WS.replace(/\/ws\/?$/, '') + '/ws/bearing';
 
 const STATUS_COLOR = { HEALTHY: '#26e5a2', WATCH: '#fbbf24', FAULT: '#ef4444' };
 
@@ -24,64 +22,18 @@ const STATUS_COLOR = { HEALTHY: '#26e5a2', WATCH: '#fbbf24', FAULT: '#ef4444' };
  * replayed through the trained anomaly model by the backend (/ws/bearing).
  */
 export default function BearingHealthPanel() {
-  const [phase, setPhase] = useState('idle'); // idle | connecting | running | done | error
-  const [points, setPoints] = useState([]);
-  const [latest, setLatest] = useState(null);
-  const [speed, setSpeed] = useState(0.1);
-  const socketRef = useRef(null);
-  const bufferRef = useRef([]);
-
-  const stop = useCallback(() => {
-    if (socketRef.current) {
-      socketRef.current.onclose = null;
-      socketRef.current.close();
-      socketRef.current = null;
-    }
-  }, []);
-
-  const start = useCallback(() => {
-    stop();
-    bufferRef.current = [];
-    setPoints([]);
-    setLatest(null);
-    setPhase('connecting');
-    let ws;
-    try {
-      ws = new WebSocket(`${BEARING_WS}?interval=${speed}`);
-    } catch {
-      setPhase('error');
-      return;
-    }
-    socketRef.current = ws;
-    ws.onopen = () => setPhase('running');
-    ws.onerror = () => setPhase('error');
-    ws.onclose = () => setPhase((p) => (p === 'running' || p === 'connecting' ? 'error' : p));
-    ws.onmessage = (e) => {
-      let m;
-      try { m = JSON.parse(e.data); } catch { return; }
-      if (m.type === 'bearing') {
-        bufferRef.current.push(m);
-        setPoints(bufferRef.current.slice());
-        setLatest(m);
-      } else if (m.type === 'done') {
-        setPhase('done');
-      } else if (m.type === 'error') {
-        setPhase('error');
-      }
-    };
-  }, [speed, stop]);
-
-  useEffect(() => stop, [stop]);
+  const { feeds, restart } = useRealPlant();
+  const { phase, latest, hist } = feeds.bearing;
 
   const status = latest?.status || 'HEALTHY';
   const color = STATUS_COLOR[status];
 
   const chartData = {
-    labels: points.map((p) => p.index),
+    labels: hist.map((p) => p.index),
     datasets: [
       {
         label: 'Anomaly score',
-        data: points.map((p) => p.error),
+        data: hist.map((p) => p.error),
         borderColor: color,
         backgroundColor: color,
         borderWidth: 2,
@@ -90,7 +42,7 @@ export default function BearingHealthPanel() {
       },
       {
         label: 'Alarm threshold',
-        data: points.map((p) => p.threshold),
+        data: hist.map((p) => p.threshold),
         borderColor: '#94a3b8',
         borderDash: [6, 4],
         borderWidth: 1,
@@ -120,41 +72,21 @@ export default function BearingHealthPanel() {
     },
   };
 
-  const label = {
-    idle: 'Ready',
-    connecting: 'Connecting…',
-    running: 'Streaming',
-    done: 'Run complete',
-    error: 'Backend not reachable – start it with: uvicorn app:app --port 8000 (in mlmodel/)',
-  }[phase];
-
   return (
     <NeonCard>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontSize: 18, fontWeight: 600, color: '#e2e8f0' }}>Real Bearing Health (NASA IMS run-to-failure)</div>
           <div style={{ fontSize: 12, color: '#94a3b8' }}>
-            Recorded vibration from a bearing that failed after ~164 h, replayed through the trained model. {label}
+            Recorded vibration from a bearing that failed after ~164 h, replayed through the trained model. {PHASE_LABEL[phase]}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <select
-            value={speed}
-            onChange={(e) => setSpeed(Number(e.target.value))}
-            disabled={phase === 'running'}
-            style={{ background: '#0f1c26', color: '#e2e8f0', border: '1px solid #334155', borderRadius: 8, padding: '6px 8px' }}
-          >
-            <option value={0.3}>Slow</option>
-            <option value={0.1}>Normal</option>
-            <option value={0.02}>Fast</option>
-          </select>
-          <button
-            onClick={start}
-            style={{ background: '#26e5a2', color: '#04130d', border: 0, borderRadius: 8, padding: '8px 14px', fontWeight: 600, cursor: 'pointer' }}
-          >
-            {phase === 'idle' ? 'Start replay' : 'Restart'}
-          </button>
-        </div>
+        <button
+          onClick={() => restart('bearing')}
+          style={{ background: '#26e5a2', color: '#04130d', border: 0, borderRadius: 8, padding: '8px 14px', fontWeight: 600, cursor: 'pointer' }}
+        >
+          Restart replay
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', margin: '16px 0' }}>

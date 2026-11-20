@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import './DashboardPages.css';
+import SimulatedBadge from '../../components/SimulatedBadge';
 
 const hardcodedSnapshots = {
   "Current Baseline": [
@@ -181,6 +182,7 @@ const ReportsScreen = () => {
     <div className="reports-container">
       <div className="reports-header">
         <h1>Reports & ESG Analytics</h1>
+        <SimulatedBadge />
       </div>
 
       <div className="reports-content">

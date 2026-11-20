@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MachineData from '../../data/machineData';
 import { Settings, Thermometer, Gauge, Activity, Cpu, Power, Crosshair, Map, Wrench, ShieldCheck, Cpu as CpuIcon } from 'lucide-react';
 import './DashboardPages.css';
+import SimulatedBadge from '../../components/SimulatedBadge';
 
 const MachinesScreen = () => {
   const [selectedMachine, setSelectedMachine] = useState(MachineData.defaultMachine);
@@ -57,6 +58,7 @@ const MachinesScreen = () => {
     <div className="machine-header">
       <div className="machine-title-area">
         <h1>{selectedMachine}</h1>
+        <SimulatedBadge />
         <div className="machine-status">
           <div className={`status-dot ${isRunning ? 'running' : 'stopped'}`}></div>
           <span className={`status-text ${isRunning ? 'running' : 'stopped'}`}>

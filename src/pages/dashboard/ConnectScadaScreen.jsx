@@ -4,6 +4,7 @@ import SimulationState from '../../services/SimulationState';
 import NeonCard from '../../components/NeonCard';
 import { Router as RouterIcon, Factory, Wifi, Activity, Shield, ChevronRight } from 'lucide-react';
 import './DashboardPages.css';
+import SimulatedBadge from '../../components/SimulatedBadge';
 
 const ConnectScadaScreen = () => {
   const [selectedProtocol, setSelectedProtocol] = useState("OPC-UA");
@@ -106,6 +107,7 @@ const ConnectScadaScreen = () => {
     <div className="scada-container">
       <div className="scada-header">
         <h1>Connect SCADA</h1>
+        <SimulatedBadge />
       </div>
 
       <div className="scada-content">

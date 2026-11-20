@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,11 +10,9 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import NeonCard from './NeonCard';
-import useReplaySocket, { PHASE_LABEL } from './useReplaySocket';
+import { useRealPlant, PHASE_LABEL } from '../services/realPlantContext';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
-
-const WINDOW = 192; // last 2 days of 15-minute readings
 
 /**
  * Real steel-plant energy data (UCI #851, South Korea, 2018). Replays held-out Oct-Dec
@@ -22,30 +20,16 @@ const WINDOW = 192; // last 2 days of 15-minute readings
  * "Unexpectedly high" is relative to that baseline; it is not a confirmed waste label.
  */
 export default function PlantEnergyPanel() {
-  const [pts, setPts] = useState([]);
-  const [latest, setLatest] = useState(null);
-  const [flagged, setFlagged] = useState(0);
-
-  const onReset = useCallback(() => { setPts([]); setLatest(null); setFlagged(0); }, []);
-  const onMessage = useCallback((m) => {
-    setLatest(m);
-    if (m.high) setFlagged((n) => n + 1);
-    setPts((p) => {
-      const next = p.length >= WINDOW ? p.slice(p.length - WINDOW + 1) : p.slice();
-      next.push(m);
-      return next;
-    });
-  }, []);
-
-  const { phase, start } = useReplaySocket('/ws/energy', 0.02, onMessage, onReset);
+  const { feeds, restart } = useRealPlant();
+  const { phase, latest, hist, stats } = feeds.energy;
 
   const data = {
-    labels: pts.map((p) => p.date.slice(5, 16)),
+    labels: hist.map((p) => p.date.slice(5, 16)),
     datasets: [
-      { label: 'Actual kWh', data: pts.map((p) => p.kwh), borderColor: '#26e5a2', borderWidth: 2, pointRadius: 0, tension: 0.2 },
-      { label: 'Expected kWh (baseline)', data: pts.map((p) => p.expected), borderColor: '#94a3b8', borderDash: [6, 4], borderWidth: 1, pointRadius: 0 },
+      { label: 'Actual kWh', data: hist.map((p) => p.kwh), borderColor: '#26e5a2', borderWidth: 2, pointRadius: 0, tension: 0.2 },
+      { label: 'Expected kWh (baseline)', data: hist.map((p) => p.expected), borderColor: '#94a3b8', borderDash: [6, 4], borderWidth: 1, pointRadius: 0 },
       {
-        label: 'Unexpectedly high', data: pts.map((p) => (p.high ? p.kwh : null)), borderColor: '#ef4444', backgroundColor: '#ef4444',
+        label: 'Unexpectedly high', data: hist.map((p) => (p.high ? p.kwh : null)), borderColor: '#ef4444', backgroundColor: '#ef4444',
         showLine: false, pointRadius: 4,
       },
     ],
@@ -71,10 +55,10 @@ export default function PlantEnergyPanel() {
           </div>
         </div>
         <button
-          onClick={start}
+          onClick={() => restart('energy')}
           style={{ background: '#26e5a2', color: '#04130d', border: 0, borderRadius: 8, padding: '8px 14px', fontWeight: 600, cursor: 'pointer' }}
         >
-          {phase === 'idle' ? 'Start replay' : 'Restart'}
+          Restart replay
         </button>
       </div>
 
@@ -82,7 +66,7 @@ export default function PlantEnergyPanel() {
         <Stat label="Time" value={latest ? latest.date.slice(0, 16) : '—'} />
         <Stat label="Energy so far" value={latest ? `${latest.cum_kwh.toLocaleString()} kWh` : '—'} />
         <Stat label="CO₂ so far" value={latest ? `${latest.cum_tco2} t` : '—'} />
-        <Stat label="Flagged intervals" value={latest ? flagged : '—'} color={flagged ? '#fbbf24' : undefined} />
+        <Stat label="Flagged intervals" value={latest ? stats.flagged : '—'} color={stats.flagged ? '#fbbf24' : undefined} />
         <Stat label="Unexpected excess" value={latest ? `${latest.cum_excess_kwh.toLocaleString()} kWh` : '—'} color={latest && latest.cum_excess_kwh ? '#fbbf24' : undefined} />
       </div>
 

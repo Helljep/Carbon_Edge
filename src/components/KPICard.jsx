@@ -9,6 +9,7 @@ const KPICard = ({
   unit,
   trend,
   isPositiveTrend,
+  trendDir,
   icon: IconComponent,
   accentColor,
   isWeb = false,
@@ -34,22 +35,24 @@ const KPICard = ({
           </span>
         </div>
         
-        <div className="kpi-footer">
-          {isPositiveTrend ? (
-            <ArrowUp color="var(--color-success)" size={14} />
-          ) : (
-            <ArrowDown color="var(--color-error)" size={14} />
-          )}
-          <span 
-            className="kpi-trend" 
-            style={{ 
-              color: isPositiveTrend ? 'var(--color-success)' : 'var(--color-error)',
-              fontSize: isWeb ? '14px' : '12px'
-            }}
-          >
-            {trend}
-          </span>
-        </div>
+        {trend != null && trend !== '' && (
+          <div className="kpi-footer">
+            {(trendDir ? trendDir === 'up' : isPositiveTrend) ? (
+              <ArrowUp color={isPositiveTrend ? 'var(--color-success)' : 'var(--color-error)'} size={14} />
+            ) : (
+              <ArrowDown color={isPositiveTrend ? 'var(--color-success)' : 'var(--color-error)'} size={14} />
+            )}
+            <span 
+              className="kpi-trend" 
+              style={{ 
+                color: isPositiveTrend ? 'var(--color-success)' : 'var(--color-error)',
+                fontSize: isWeb ? '14px' : '12px'
+              }}
+            >
+              {trend}
+            </span>
+          </div>
+        )}
       </div>
     </NeonCard>
   );
