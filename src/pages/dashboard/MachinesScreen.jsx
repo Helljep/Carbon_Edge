@@ -1,53 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import MachineData from '../../data/machineData';
-import { Settings, Thermometer, Gauge, Activity, Cpu, Power, Crosshair, Map, Wrench, ShieldCheck, Cpu as CpuIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Settings, Thermometer, Gauge, Activity, Zap } from 'lucide-react';
+import { useRealPlant } from '../../services/realPlantContext';
+import { REAL_MACHINES, DEFAULT_MACHINE, LEVEL_COLOR, machineStatus } from '../../services/plantStatus';
 import './DashboardPages.css';
-import SimulatedBadge from '../../components/SimulatedBadge';
 
+// Health bars for the hydraulic rig's four components, taken from the model's diagnosis.
+const HYD_BARS = [
+  { key: 'cooler', name: 'Cooler (efficiency)', pct: (v) => v },
+  { key: 'valve', name: 'Valve (switching)', pct: (v) => v },
+  { key: 'pump_leak', name: 'Pump leakage', pct: (v) => [100, 55, 15][v] ?? 50 },
+  { key: 'accumulator', name: 'Accumulator (pre-charge)', pct: (v) => Math.min(100, (v / 130) * 100) },
+];
+const barColor = (pct) => (pct >= 90 ? 'var(--color-success)' : pct >= 60 ? 'var(--color-orange)' : 'var(--color-error)');
+
+/** Machines page: the three real replayed machines, with live status and their recent alerts. */
 const MachinesScreen = () => {
-  const [selectedMachine, setSelectedMachine] = useState(MachineData.defaultMachine);
-  const [isRunning, setIsRunning] = useState(true);
-  
-  const [targetTemp, setTargetTemp] = useState(1450.0);
-  const [targetSpeed, setTargetSpeed] = useState(85.0);
-  const [targetFeed, setTargetFeed] = useState(120.0);
-  
-  const [currentTemp, setCurrentTemp] = useState(1448.2);
-  const [currentSpeed, setCurrentSpeed] = useState(84.8);
-  const [currentFeed, setCurrentFeed] = useState(119.5);
-
-  const machines = MachineData.machines;
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (isRunning) {
-        setCurrentTemp(prev => prev + (targetTemp - prev) * 0.1 + (Math.random() - 0.5) * 2);
-        setCurrentSpeed(prev => prev + (targetSpeed - prev) * 0.1 + (Math.random() - 0.5) * 0.5);
-        setCurrentFeed(prev => prev + (targetFeed - prev) * 0.1 + (Math.random() - 0.5) * 1.0);
-      } else {
-        setCurrentTemp(prev => Math.max(25.0, prev * 0.995));
-        setCurrentSpeed(prev => Math.max(0.0, prev * 0.95));
-        setCurrentFeed(0.0);
-      }
-    }, 800);
-
-    return () => clearInterval(timer);
-  }, [isRunning, targetTemp, targetSpeed, targetFeed]);
-
+  const { feeds, alerts } = useRealPlant();
+  const [selected, setSelected] = useState(DEFAULT_MACHINE);
   const isWide = window.innerWidth > 1000;
+
+  const info = REAL_MACHINES.find((m) => m.id === selected);
+  const latest = feeds[selected].latest;
+  const status = machineStatus(selected, feeds);
+  const own = alerts.filter((a) => a.source === selected);
+
+  const metrics = !latest ? [] : selected === 'bearing' ? [
+    { label: 'ANOMALY SCORE', value: latest.error.toFixed(2), unit: `/ ${latest.threshold.toFixed(2)}`, icon: Activity, color: 'var(--color-orange)' },
+    { label: 'VIBRATION RMS', value: latest.rms.toFixed(4), unit: '', icon: Gauge, color: 'var(--color-success)' },
+    { label: 'KURTOSIS', value: latest.kurtosis.toFixed(2), unit: '', icon: Activity, color: 'var(--color-purple)' },
+  ] : selected === 'hydraulic' ? [
+    { label: 'OIL TEMPERATURE', value: latest.TS1_mean.toFixed(1), unit: '°C', icon: Thermometer, color: 'var(--color-orange)' },
+    { label: 'MOTOR POWER', value: latest.EPS1_mean.toFixed(0), unit: 'W', icon: Zap, color: 'var(--color-success)' },
+    { label: 'PRESSURE', value: latest.PS1_mean.toFixed(0), unit: 'bar', icon: Gauge, color: 'var(--color-purple)' },
+  ] : [
+    { label: 'USAGE (INTERVAL)', value: latest.kwh.toFixed(1), unit: 'kWh', icon: Zap, color: 'var(--color-orange)' },
+    { label: 'EXPECTED', value: latest.expected.toFixed(1), unit: 'kWh', icon: Gauge, color: 'var(--color-success)' },
+    { label: 'CO₂ SO FAR', value: String(latest.cum_tco2), unit: 't', icon: Activity, color: 'var(--color-purple)' },
+  ];
 
   const MachineSelector = () => (
     <div className="machines-sidebar">
-      <div className="sidebar-header">ASSETS</div>
+      <div className="sidebar-header">ASSETS (REAL DATA)</div>
       <div className="machine-list">
-        {machines.map(m => (
-          <div 
-            key={m} 
-            className={`machine-item ${selectedMachine === m ? 'active' : ''}`}
-            onClick={() => setSelectedMachine(m)}
-          >
-            <Settings size={20} className={selectedMachine === m ? 'icon-active' : 'icon-inactive'} />
-            <span>{m}</span>
+        {REAL_MACHINES.map((m) => (
+          <div key={m.id} className={`machine-item ${selected === m.id ? 'active' : ''}`} onClick={() => setSelected(m.id)}>
+            <Settings size={20} className={selected === m.id ? 'icon-active' : 'icon-inactive'} />
+            <span>{m.title}</span>
           </div>
         ))}
       </div>
@@ -57,190 +55,117 @@ const MachinesScreen = () => {
   const Header = () => (
     <div className="machine-header">
       <div className="machine-title-area">
-        <h1>{selectedMachine}</h1>
-        <SimulatedBadge />
+        <h1>{info.title}</h1>
         <div className="machine-status">
-          <div className={`status-dot ${isRunning ? 'running' : 'stopped'}`}></div>
-          <span className={`status-text ${isRunning ? 'running' : 'stopped'}`}>
-            {isRunning ? "OPERATIONAL" : "STOPPED"}
-          </span>
+          <div className="status-dot" style={{ backgroundColor: LEVEL_COLOR[status.level] }}></div>
+          <span className="status-text" style={{ color: LEVEL_COLOR[status.level] }}>{status.text.toUpperCase()}</span>
         </div>
       </div>
       <div className="oee-card">
-        <span className="oee-label">OEE SCORE</span>
-        <span className="oee-value">87.4%</span>
-      </div>
-    </div>
-  );
-
-  const SliderControl = ({ label, value, min, max, unit, onChange }) => (
-    <div className="slider-control">
-      <div className="slider-header">
-        <span>{label}</span>
-        <span className="slider-val">{value.toFixed(1)} {unit}</span>
-      </div>
-      <input 
-        type="range" 
-        min={min} 
-        max={max} 
-        value={value} 
-        onChange={e => onChange(parseFloat(e.target.value))}
-        className="custom-slider"
-      />
-    </div>
-  );
-
-  const ControlPanel = () => (
-    <div className="control-panel panel-card">
-      <div className="panel-header">
-        <h2>CONTROL PANEL</h2>
-        <div className="mode-badge">MODE: AUTO</div>
-      </div>
-      
-      <div className="action-buttons">
-        <button 
-          className="btn-start" 
-          onClick={() => setIsRunning(true)} 
-          disabled={isRunning}
-        >
-          START MACHINE
-        </button>
-        <button 
-          className="btn-stop" 
-          onClick={() => setIsRunning(false)} 
-          disabled={!isRunning}
-        >
-          STOP MACHINE
-        </button>
-      </div>
-
-      <div className="sliders">
-        <SliderControl 
-          label="TARGET TEMPERATURE" value={targetTemp} 
-          min={1000} max={1600} unit="°C" onChange={setTargetTemp} 
-        />
-        <SliderControl 
-          label="ROTATION SPEED" value={targetSpeed} 
-          min={0} max={120} unit="RPM" onChange={setTargetSpeed} 
-        />
-        <SliderControl 
-          label="FEED RATE" value={targetFeed} 
-          min={0} max={200} unit="t/h" onChange={setTargetFeed} 
-        />
+        <span className="oee-label">DATA SOURCE</span>
+        <span className="oee-value" style={{ fontSize: 13 }}>{info.source}</span>
       </div>
     </div>
   );
 
   const MetricCard = ({ label, value, unit, icon: Icon, color }) => (
     <div className="metric-card panel-card" style={{ borderColor: `${color}40` }}>
-      <div className="metric-header">
-        <Icon size={16} color={color} />
-        <span>{label}</span>
-      </div>
-      <div className="metric-value-row">
-        <span className="m-val">{value}</span>
-        <span className="m-unit">{unit}</span>
-      </div>
+      <div className="metric-header"><Icon size={16} color={color} /><span>{label}</span></div>
+      <div className="metric-value-row"><span className="m-val">{value}</span><span className="m-unit">{unit}</span></div>
     </div>
   );
 
-  const ComponentHealth = () => (
-    <div className="health-panel panel-card">
-      <h2>COMPONENT HEALTH</h2>
-      <div className="health-items">
-        <HealthItem name="Main Motor" health={98} color="var(--color-success)" />
-        <HealthItem name="Gearbox" health={85} color="var(--color-success)" />
-        <HealthItem name="Drive Bearing" health={72} color="var(--color-orange)" />
-        <HealthItem name="Cooling Fan" health={94} color="var(--color-success)" />
-        <HealthItem name="Hydraulic Pump" health={45} color="var(--color-error)" />
-      </div>
-    </div>
-  );
-
-  const HealthItem = ({ name, health, color }) => (
+  const HealthItem = ({ name, pct, text }) => (
     <div className="health-item">
-      <div className="health-header">
-        <span>{name}</span>
-        <span style={{ color }}>{health}%</span>
-      </div>
-      <div className="health-bar-bg">
-        <div className="health-bar-fill" style={{ width: `${health}%`, backgroundColor: color }}></div>
-      </div>
+      <div className="health-header"><span>{name}</span><span style={{ color: barColor(pct) }}>{text}</span></div>
+      <div className="health-bar-bg"><div className="health-bar-fill" style={{ width: `${pct}%`, backgroundColor: barColor(pct) }}></div></div>
     </div>
   );
 
-  const MaintenanceLog = () => (
+  const ComponentHealth = () => {
+    let body;
+    if (!latest) body = <p className="alert-desc">Waiting for data from the replay backend.</p>;
+    else if (selected === 'hydraulic') {
+      body = HYD_BARS.map((c) => {
+        const v = latest[`pred_${c.key}`];
+        const pct = c.pct(v);
+        return <HealthItem key={c.key} name={c.name} pct={pct} text={`${v}`} />;
+      });
+    } else if (selected === 'bearing') {
+      const pct = Math.max(0, Math.min(100, 100 - (latest.error / latest.threshold) * 50));
+      body = <HealthItem name="Bearing (score vs alarm threshold)" pct={pct} text={`${(latest.error / latest.threshold).toFixed(2)}x`} />;
+    } else {
+      const excess = Math.max(0, latest.cum_excess_kwh);
+      const pct = latest.cum_kwh > 0 ? Math.max(0, 100 - (excess / latest.cum_kwh) * 100) : 100;
+      body = <HealthItem name="Energy within baseline" pct={pct} text={`${pct.toFixed(1)}%`} />;
+    }
+    return (
+      <div className="health-panel panel-card">
+        <h2>{selected === 'hydraulic' ? 'COMPONENT DIAGNOSIS (MODEL)' : 'CONDITION'}</h2>
+        <div className="health-items">{body}</div>
+      </div>
+    );
+  };
+
+  const EventLog = () => (
     <div className="maintenance-panel panel-card">
-      <h2>MAINTENANCE LOG</h2>
+      <h2>RECENT ALERTS</h2>
       <div className="log-items">
-        <LogItem date="2023-10-15" task="Oil Change" status="Completed" />
-        <div className="divider"></div>
-        <LogItem date="2023-11-02" task="Bearing Inspection" status="Completed" />
-        <div className="divider"></div>
-        <LogItem date="2023-12-10" task="Filter Replacement" status="Scheduled" isUpcoming />
+        {own.length === 0 ? <p className="alert-desc">No alerts for this machine yet.</p> : own.slice(0, 5).map((a, i) => (
+          <React.Fragment key={a.id}>
+            {i > 0 && <div className="divider"></div>}
+            <div className="log-item">
+              <div className="log-info">
+                <span className="log-date">{a.time}</span>
+                <span className="log-task">{a.title}</span>
+              </div>
+              <div className={`log-status ${a.severity === 'High' ? '' : 'upcoming'}`}>{a.severity.toUpperCase()}</div>
+            </div>
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );
 
-  const LogItem = ({ date, task, status, isUpcoming }) => (
-    <div className="log-item">
-      <div className="log-info">
-        <span className="log-date">{date}</span>
-        <span className="log-task">{task}</span>
+  const Center = () => (
+    <>
+      <Header />
+      <div className="spacer-24"></div>
+      <div className={isWide ? 'metrics-row' : 'metrics-col'}>
+        {metrics.map((m) => <MetricCard key={m.label} {...m} />)}
       </div>
-      <div className={`log-status ${isUpcoming ? 'upcoming' : 'completed'}`}>
-        {status.toUpperCase()}
-      </div>
-    </div>
+      <div className="spacer-24"></div>
+      <p className="alert-desc">
+        Read-only view of a replay of recorded real data. There are no machine controls because nothing here is connected to real equipment.
+      </p>
+    </>
   );
 
   return (
     <div className="machines-container">
       {isWide ? (
         <div className="machines-layout">
-          <div className="layout-left"><MachineSelector /></div>
+          <div className="layout-left">{MachineSelector()}</div>
           <div className="layout-divider"></div>
-          <div className="layout-center">
-            <Header />
-            <div className="spacer-24"></div>
-            <ControlPanel />
-            <div className="spacer-24"></div>
-            <div className="metrics-row">
-              <MetricCard label="TEMPERATURE" value={currentTemp.toFixed(1)} unit="°C" icon={Thermometer} color="var(--color-orange)" />
-              <MetricCard label="SPEED" value={currentSpeed.toFixed(1)} unit="RPM" icon={Gauge} color="var(--color-success)" />
-              <MetricCard label="FEED RATE" value={currentFeed.toFixed(1)} unit="t/h" icon={Activity} color="var(--color-purple)" />
-            </div>
-          </div>
+          <div className="layout-center">{Center()}</div>
           <div className="layout-divider"></div>
           <div className="layout-right">
-            <ComponentHealth />
+            {ComponentHealth()}
             <div className="spacer-24"></div>
-            <MaintenanceLog />
+            {EventLog()}
           </div>
         </div>
       ) : (
         <div className="machines-mobile-layout">
-           <select 
-            className="mobile-machine-selector panel-card" 
-            value={selectedMachine} 
-            onChange={e => setSelectedMachine(e.target.value)}
-          >
-            {machines.map(m => <option key={m} value={m}>{m}</option>)}
+          <select className="mobile-machine-selector panel-card" value={selected} onChange={(e) => setSelected(e.target.value)}>
+            {REAL_MACHINES.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
           </select>
           <div className="spacer-16"></div>
-          <Header />
+          {Center()}
           <div className="spacer-24"></div>
-          <ControlPanel />
+          {ComponentHealth()}
           <div className="spacer-24"></div>
-          <div className="metrics-col">
-            <MetricCard label="TEMPERATURE" value={currentTemp.toFixed(1)} unit="°C" icon={Thermometer} color="var(--color-orange)" />
-            <MetricCard label="SPEED" value={currentSpeed.toFixed(1)} unit="RPM" icon={Gauge} color="var(--color-success)" />
-            <MetricCard label="FEED RATE" value={currentFeed.toFixed(1)} unit="t/h" icon={Activity} color="var(--color-purple)" />
-          </div>
-          <div className="spacer-24"></div>
-          <ComponentHealth />
-          <div className="spacer-24"></div>
-          <MaintenanceLog />
+          {EventLog()}
         </div>
       )}
     </div>
