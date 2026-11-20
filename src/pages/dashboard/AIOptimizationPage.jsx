@@ -1,127 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { Brain, BarChart2, TrendingUp, Activity, Cpu, CheckCircle, ShieldCheck, Scale, AlertOctagon } from 'lucide-react';
-import SimulationState from '../../services/SimulationState';
+import { Brain, BarChart2, TrendingUp, Activity, Cpu, CheckCircle, ShieldCheck, Scale } from 'lucide-react';
+import { useRealPlant } from '../../services/realPlantContext';
+import { REAL_MACHINES, DEFAULT_MACHINE, machineStatus, degradedComponents } from '../../services/plantStatus';
 import './DashboardPages.css';
-import './AIOptimization.css'; // Create specific styles if needed
-import SimulatedBadge from '../../components/SimulatedBadge';
-
-class HardcodedDataSimulator {
-  constructor() {
-    this.intervalId = null;
-    this.currentSeverity = 'normal';
-    this.subscribers = [];
-  }
-
-  subscribe(callback) {
-    this.subscribers.push(callback);
-    return () => {
-      this.subscribers = this.subscribers.filter(cb => cb !== callback);
-    };
-  }
-
-  emit(data) {
-    this.subscribers.forEach(cb => cb(data));
-  }
-
-  connect() {
-    this.currentSeverity = 'low';
-    if (this.intervalId) clearInterval(this.intervalId);
-
-    this.intervalId = setInterval(() => {
-      const prediction = this._generatePrediction();
-      this.emit(prediction);
-    }, 1000);
-
-    this.emit(this._generatePrediction());
-  }
-
-  _generatePrediction() {
-    const now = new Date();
-    const seconds = SimulationState.currentSeconds;
-
-    const isAnomaly = seconds >= 60 && seconds < 80;
-
-    if (seconds === 0) {
-      this.currentSeverity = 'normal';
-    }
-
-    if (isAnomaly) {
-      return this._generateAnomalyPrediction(now);
-    } else {
-      return this._generateNormalPrediction(now);
-    }
-  }
-
-  _generateNormalPrediction(timestamp) {
-    const anomalyScore = SimulationState.getAnomalyScore('normal', Math.random);
-    const confidence = 88.0 + Math.random() * 4.0;
-    const stability = 92.0 + Math.random() * 4.0;
-
-    return {
-      plantId: 'cement_kiln_01',
-      timestamp: this._formatTimestamp(timestamp),
-      severity: 'normal',
-      anomalyScore: anomalyScore,
-      confidence: confidence,
-      stability: stability,
-      rollingAvg: 0.16 + Math.random() * 0.1,
-      rollingStd: 0.025 + Math.random() * 0.01,
-      topCauses: [
-        { sensor: 'vibration_level', impact: 2.2 + Math.random() * 0.3 },
-        { sensor: 'kiln_pressure', impact: 1.9 + Math.random() * 0.2 },
-        { sensor: 'exhaust_co2', impact: 1.6 + Math.random() * 0.2 }
-      ],
-      rootCause: 'System operating within normal parameters',
-      recommendation: 'Continue monitoring - all systems nominal',
-      bufferFilled: true,
-      bufferLen: 50
-    };
-  }
-
-  _generateAnomalyPrediction(timestamp) {
-    const targetSeverity = SimulationState.currentCycleSeverity;
-    const anomalyScore = SimulationState.getAnomalyScore(targetSeverity, Math.random);
-    const confidence = 78.0 + Math.random() * 8.0;
-    const stability = 65.0 + Math.random() * 8.0;
-
-    if (this.currentSeverity === 'normal') {
-      this.currentSeverity = targetSeverity;
-    }
-
-    return {
-      plantId: 'cement_kiln_01',
-      timestamp: this._formatTimestamp(timestamp),
-      severity: this.currentSeverity,
-      anomalyScore: anomalyScore,
-      confidence: confidence,
-      stability: stability,
-      rollingAvg: 0.68 + Math.random() * 0.15,
-      rollingStd: 0.12 + Math.random() * 0.08,
-      topCauses: [
-        { sensor: 'vibration_level', impact: 8.2 + Math.random() * 1.5 },
-        { sensor: 'temperature_zone_3', impact: 7.5 + Math.random() * 1.2 },
-        { sensor: 'kiln_pressure', impact: 6.8 + Math.random() * 1.0 },
-        { sensor: 'exhaust_co2', impact: 5.9 + Math.random() * 0.8 },
-        { sensor: 'feed_rate', impact: 4.5 + Math.random() * 0.7 }
-      ],
-      rootCause: 'Abnormal vibration pattern detected in kiln rotation system',
-      recommendation: 'Immediate inspection of kiln bearings and drive system recommended. Reduce feed rate by 15% and monitor temperature zones.',
-      bufferFilled: true,
-      bufferLen: 50
-    };
-  }
-
-  _formatTimestamp(dt) {
-    const pad = n => n.toString().padStart(2, '0');
-    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
-  }
-
-  dispose() {
-    if (this.intervalId) clearInterval(this.intervalId);
-    this.subscribers = [];
-  }
-}
+import './AIOptimization.css';
 
 const NeonPanel = ({ title, icon: Icon, color, expand, children }) => (
   <div className="neon-panel" style={{ '--panel-color': color }}>
@@ -183,74 +66,62 @@ const GlowingMetricCard = ({ label, value, icon: Icon, color }) => (
   </div>
 );
 
+const SEVERITY = { ok: 'normal', warn: 'warning', error: 'high', idle: 'normal' };
+const RANK = { High: 3, Warning: 2, Low: 1 };
+
+/** Series for the trend chart, per machine, from the shared real-data history. */
+const trendOf = (id, hist) => {
+  if (id === 'bearing') return { label: 'Anomaly score', data: hist.map((m, i) => ({ time: i, score: m.error })) };
+  if (id === 'hydraulic') return { label: 'Components diagnosed degraded', data: hist.map((m, i) => ({ time: i, score: degradedComponents(m).length })) };
+  return { label: 'kWh above expected', data: hist.map((m, i) => ({ time: i, score: Math.max(0, m.kwh - m.expected) })) };
+};
+
+const metricsOf = (id, m) => {
+  if (id === 'bearing') return [
+    { label: 'SCORE / THRESHOLD', value: `${(m.error / m.threshold).toFixed(2)}x`, icon: ShieldCheck, color: 'var(--color-accent)' },
+    { label: 'VIBRATION RMS', value: m.rms.toFixed(4), icon: Scale, color: 'var(--color-lime)' },
+    { label: 'KURTOSIS', value: m.kurtosis.toFixed(2), icon: TrendingUp, color: 'var(--color-orange)' },
+  ];
+  if (id === 'hydraulic') return [
+    { label: 'MOTOR POWER', value: `${m.EPS1_mean.toFixed(0)} W`, icon: ShieldCheck, color: 'var(--color-accent)' },
+    { label: 'OIL TEMP', value: `${m.TS1_mean.toFixed(1)} C`, icon: Scale, color: 'var(--color-lime)' },
+    { label: 'PRESSURE', value: `${m.PS1_mean.toFixed(0)} bar`, icon: TrendingUp, color: 'var(--color-orange)' },
+  ];
+  return [
+    { label: 'USAGE (INTERVAL)', value: `${m.kwh.toFixed(1)} kWh`, icon: ShieldCheck, color: 'var(--color-accent)' },
+    { label: 'EXPECTED', value: `${m.expected.toFixed(1)} kWh`, icon: Scale, color: 'var(--color-lime)' },
+    { label: 'CO2 SO FAR', value: `${m.cum_tco2} t`, icon: TrendingUp, color: 'var(--color-orange)' },
+  ];
+};
+
+/**
+ * Suggestions for the selected machine. They come from the rule-based alerts built on the
+ * replayed real data (services/alertRules.js). This page does not optimise anything.
+ */
 const AIOptimizationPage = () => {
-  const [prediction, setPrediction] = useState(null);
-  const [error, setError] = useState(null);
-  const [anomalyHistory, setAnomalyHistory] = useState([]);
-  
-  const timerRef = useRef(0);
-  const simulatorRef = useRef(null);
-
-  useEffect(() => {
-    simulatorRef.current = new HardcodedDataSimulator();
-    
-    const unsubscribe = simulatorRef.current.subscribe((data) => {
-      setPrediction(data);
-      setError(null);
-      
-      timerRef.current += 1;
-      setAnomalyHistory(prev => {
-        const newHist = [...prev, { time: timerRef.current, score: data.anomalyScore }];
-        if (newHist.length > 50) newHist.shift();
-        return newHist;
-      });
-    });
-
-    simulatorRef.current.connect();
-
-    return () => {
-      unsubscribe();
-      if (simulatorRef.current) simulatorRef.current.dispose();
-    };
-  }, []);
-
+  const { feeds, alerts } = useRealPlant();
+  const [machine, setMachine] = useState(DEFAULT_MACHINE);
+  const feed = feeds[machine];
+  const latest = feed.latest;
+  const status = machineStatus(machine, feeds);
   const isWide = window.innerWidth > 1200;
 
-  if (error) {
-    return (
-      <div className="ai-container center-content">
-        <AlertOctagon size={64} className="error-icon" />
-        <h2 className="error-title">Connection Error</h2>
-        <p className="error-text">{error}</p>
-        <button className="btn-retry" onClick={() => simulatorRef.current.connect()}>Retry Connection</button>
-      </div>
-    );
-  }
-
-  if (!prediction) {
+  if (!latest) {
     return (
       <div className="ai-container center-content">
         <div className="spinner"></div>
-        <p className="loading-text">Connecting to AI System...</p>
+        <p className="loading-text">Waiting for the replay backend to send data...</p>
       </div>
     );
   }
 
-  const isNormal = !prediction.severity || ['normal', 'low'].includes(prediction.severity.toLowerCase());
-  const displayCauses = isNormal 
-    ? [
-        { sensor: 'VIBRATION LEVEL', impact: 10.0 },
-        { sensor: 'KILN PRESSURE', impact: 10.0 },
-        { sensor: 'EXHAUST CO2', impact: 10.0 }
-      ]
-    : prediction.topCauses;
-
-  const getBarColor = (impact) => {
-    if (isNormal) return 'var(--color-accent)';
-    if (impact >= 7) return 'var(--color-error)';
-    if (impact >= 4) return 'var(--color-orange)';
-    return 'var(--color-lime)';
-  };
+  const own = alerts.filter((a) => a.source === machine);
+  const top = own.reduce((best, a) => (!best || RANK[a.severity] > RANK[best.severity] ? a : best), null);
+  const focus = own[0] || top; // alerts are newest first
+  const trend = trendOf(machine, feed.hist);
+  const causes = focus?.rawData?.top_causes || [];
+  const isNormal = status.level === 'ok' || status.level === 'idle';
+  const title = REAL_MACHINES.find((m) => m.id === machine);
 
   return (
     <div className="ai-container">
@@ -259,54 +130,67 @@ const AIOptimizationPage = () => {
           <div className="header-left">
             <div className="live-status-row">
               <LivePulse />
-              <span className="live-text">SIMULATED MONITORING</span>
-              <SimulatedBadge style={{ marginLeft: 8 }} />
+              <span className="live-text">REPLAY OF RECORDED REAL DATA · RULE-BASED SUGGESTIONS</span>
             </div>
-            <h1 className="plant-id">{prediction.plantId.toUpperCase()}</h1>
-            <div className="timestamp-text">{prediction.timestamp}</div>
+            <h1 className="plant-id">{title.title.toUpperCase()}</h1>
+            <div className="timestamp-text">{title.source}</div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+              {REAL_MACHINES.map((m) => (
+                <button key={m.id} type="button" onClick={() => setMachine(m.id)}
+                  style={{ padding: '4px 12px', borderRadius: 14, cursor: 'pointer', background: m.id === machine ? 'rgba(38,229,162,0.15)' : 'transparent',
+                    color: m.id === machine ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                    border: `1px solid ${m.id === machine ? 'var(--color-accent)' : 'rgba(255,255,255,0.15)'}` }}>
+                  {m.title}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="header-right">
             <div className="buffer-badge">
               <Cpu size={18} />
-              <span>BUFFER: {prediction.bufferLen}</span>
+              <span>{own.length} ALERT{own.length === 1 ? '' : 'S'} · {feed.hist.length} SAMPLES</span>
             </div>
           </div>
         </div>
 
         <div className={`ai-grid ${isWide ? 'grid-desktop' : 'grid-mobile'}`}>
           <div className="grid-cell">
-            <NeonPanel title="AI DIAGNOSTICS" icon={Brain} color="var(--color-orange)" expand>
+            <NeonPanel title="DIAGNOSTICS & SUGGESTIONS" icon={Brain} color="var(--color-orange)" expand>
               <div className="diag-group">
-                <div className="diag-label root-cause">ROOT CAUSE</div>
-                <div className="diag-value">{prediction.rootCause}</div>
+                <div className="diag-label root-cause">CURRENT STATE</div>
+                <div className="diag-value">{status.text}</div>
               </div>
               <div className="diag-group">
-                <div className="diag-label recommendation">RECOMMENDATION</div>
-                <div className="diag-value">{prediction.recommendation}</div>
+                <div className="diag-label root-cause">LIKELY CAUSE (LATEST ALERT)</div>
+                <div className="diag-value">{focus ? `${focus.rootCause}. ${focus.rootCauseDetail}` : 'No alert has fired for this machine yet.'}</div>
+              </div>
+              <div className="diag-group">
+                <div className="diag-label recommendation">SUGGESTED CHECK</div>
+                <div className="diag-value">{focus ? focus.action : 'Continue monitoring. Nothing to act on.'}</div>
               </div>
             </NeonPanel>
           </div>
 
           <div className="grid-cell">
-            <NeonPanel title="SYSTEM HEALTH" icon={Activity} color="var(--color-lime)" expand>
+            <NeonPanel title="MACHINE HEALTH" icon={Activity} color="var(--color-lime)" expand>
               <div className="health-content-row">
                 <div className="health-gauge-area">
-                  <SeverityGauge severity={prediction.severity} />
+                  <SeverityGauge severity={SEVERITY[status.level]} />
                 </div>
                 <div className="health-metrics-area">
-                  <GlowingMetricCard label="CONFIDENCE" value={`${prediction.confidence.toFixed(1)}%`} icon={ShieldCheck} color="var(--color-accent)" />
-                  <GlowingMetricCard label="STABILITY" value={`${prediction.stability.toFixed(1)}%`} icon={Scale} color="var(--color-lime)" />
-                  <GlowingMetricCard label="ROLLING AVG" value={prediction.rollingAvg.toFixed(3)} icon={TrendingUp} color="var(--color-orange)" />
+                  {metricsOf(machine, latest).map((m) => (
+                    <GlowingMetricCard key={m.label} label={m.label} value={m.value} icon={m.icon} color={m.color} />
+                  ))}
                 </div>
               </div>
             </NeonPanel>
           </div>
 
           <div className="grid-cell">
-            <NeonPanel title="ANOMALY SCORE TREND" icon={TrendingUp} color="var(--color-accent)" expand>
+            <NeonPanel title={trend.label.toUpperCase()} icon={TrendingUp} color="var(--color-accent)" expand>
               <div className="chart-container">
                 <ResponsiveContainer width="100%" height={200}>
-                  <AreaChart data={anomalyHistory} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                  <AreaChart data={trend.data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.3}/>
@@ -315,7 +199,7 @@ const AIOptimizationPage = () => {
                     </defs>
                     <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="rgba(255,255,255,0.1)" />
                     <XAxis dataKey="time" hide />
-                    <YAxis domain={[0, 1.0]} tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
                     <Area type="monotone" dataKey="score" stroke="var(--color-accent)" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" isAnimationActive={false} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -324,28 +208,29 @@ const AIOptimizationPage = () => {
           </div>
 
           <div className="grid-cell">
-            <NeonPanel title="SENSOR IMPACT ANALYSIS" icon={BarChart2} color="var(--color-lime)" expand>
-              {isNormal ? (
-                <div className="normal-impact-state">
-                  <CheckCircle size={32} color="var(--color-lime)" />
-                  <span>SYSTEM STATUS NORMAL</span>
-                </div>
-              ) : (
+            <NeonPanel title="EVIDENCE" icon={BarChart2} color="var(--color-lime)" expand>
+              {causes.length > 0 ? (
                 <div className="impact-bars-scroll">
-                  {displayCauses.map((cause, i) => (
-                    <div className="impact-bar-item" key={i}>
+                  <div className="diag-label">{focus.chartTitle}</div>
+                  {causes.map((c) => (
+                    <div className="impact-bar-item" key={c.sensor}>
                       <div className="impact-bar-header">
-                        <span>{cause.sensor.toUpperCase().replace(/_/g, ' ')}</span>
-                        { !isNormal && <span style={{ color: getBarColor(cause.impact) }}>{cause.impact.toFixed(2)}</span> }
+                        <span>{c.sensor.toUpperCase()}</span>
+                        <span style={{ color: c.impact >= 5 ? 'var(--color-error)' : 'var(--color-orange)' }}>{c.impact.toFixed(1)}</span>
                       </div>
                       <div className="impact-bar-bg">
-                        <div className="impact-bar-fill" style={{ 
-                          width: `${Math.min(100, (cause.impact / 10.0) * 100)}%`,
-                          backgroundColor: getBarColor(cause.impact)
-                        }}></div>
+                        <div className="impact-bar-fill" style={{ width: `${Math.min(100, (c.impact / 10) * 100)}%`,
+                          backgroundColor: c.impact >= 5 ? 'var(--color-error)' : 'var(--color-orange)' }}></div>
                       </div>
                     </div>
                   ))}
+                </div>
+              ) : focus ? (
+                <pre className="diag-value" style={{ whiteSpace: 'pre-wrap', fontSize: 12, margin: 0 }}>{focus.eventLog}</pre>
+              ) : (
+                <div className="normal-impact-state">
+                  <CheckCircle size={32} color="var(--color-lime)" />
+                  <span>{isNormal ? 'NO ALERTS FOR THIS MACHINE' : 'WAITING FOR A RULE TO FIRE'}</span>
                 </div>
               )}
             </NeonPanel>

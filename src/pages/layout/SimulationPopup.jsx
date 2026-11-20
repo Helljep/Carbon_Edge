@@ -22,7 +22,7 @@ const SimulationPopup = ({ onConnect }) => {
         <div className="sim-popup-content">
           <p>CarbonEdge monitors industrial machines and flags faults and energy waste early.</p>
           <p>No live factory is connected in this demo. The Dashboard replays <b>recorded real data</b> from public datasets: NASA IMS bearing run-to-failure data, the ZeMA hydraulic test rig, and a steel plant&apos;s 2018 energy readings.</p>
-          <p>The other pages (Alerts, AI Recommendations, Machines, Reports, Connect SCADA) still use <b>simulated</b> numbers and are labelled as such.</p>
+          <p>The other pages (Machines, Reports, Connect SCADA) still use <b>simulated</b> numbers and are labelled as such.</p>
         </div>
 
         {isConnecting ? (
