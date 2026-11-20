@@ -15,7 +15,7 @@ The **Dashboard** page is now driven entirely by replayed real data. One shared 
 | **Dashboard: Bearing Test Rig** | NASA IMS bearing run-to-failure recordings | Real data, trained model, evaluated |
 | **Dashboard: Hydraulic Rig** | ZeMA hydraulic test rig (UCI #447), 2,205 labelled cycles | Real data, grouped cross-validation |
 | **Dashboard: Steel Plant Energy** | UCI Steel Industry Energy Consumption (#851), 2018 | Real data, baseline only (no waste labels) |
-| **Dashboard: Electronics Plant (HIPE)** | HIPE smart meters, 10 machines + main meter, 1 week, 2017 | Real data, weekday baseline, base-load analysis (no labels) |
+| **Dashboard: Electronics Plant (HIPE)** | HIPE smart meters, 10 machines + main meter, 3 months, 2017 | Real data, weekday/weekend baseline, base-load analysis (no labels) |
 | **Alerts page** | Rules applied to the three replayed streams above (`src/services/alertRules.js`) | Real data, **rule-based**; rules are hand-written, not validated against plant outcomes |
 | **AI Recommendations page** | Latest rule-based alert per machine plus live metrics from the replayed feeds | Real data; suggestions are generic rule-based checks, not an optimiser |
 | **Machines page** | Live status, metrics, model diagnosis and recent alerts for the 3 replayed machines (read-only, no controls) | Real data |
@@ -35,7 +35,7 @@ There is no real kiln data in this project. The earlier kiln dashboard was simul
 | **Real Bearing Health panel** | NASA IMS bearing run-to-failure recordings | Real data, trained model, evaluated |
 | **Real Hydraulic Rig Diagnosis panel** | ZeMA hydraulic test rig (UCI #447), 2,205 labelled cycles | Real data, grouped cross-validation |
 | **Real Plant Energy & CO2 panel** | UCI Steel Industry Energy Consumption (#851), 2018 | Real data, baseline only (no waste labels) |
-| **Real Plant Meters panel** | HIPE (KIT, 2017), one week | Real data, weekday baseline (no labels) |
+| **Real Plant Meters panel** | HIPE (KIT, 2017), 3 months | Real data, weekday/weekend baseline (no labels) |
 | Original Keras autoencoder in `mlmodel/` (`app.py` `/ingest`) | Synthetic CSVs | Demo only |
 | OPC-UA / Modbus / MQTT | Not implemented | Planned |
 
@@ -114,12 +114,13 @@ Data: one steel plant, South Korea, 2018, 15-minute readings (35,040 rows).
 - About 55% of active intervals have lagging power factor below 90%, a commonly cited threshold for utility penalties (verify the tariff rules for the actual plant).
 
 ### Real plant meters: HIPE ([`mlmodel/hipe_pipeline.py`](mlmodel/hipe_pipeline.py))
-Data: **HIPE** (High-resolution Industrial Production Energy), smart-meter readings from a real power-electronics production plant (KIT, Germany, Oct 2017; CC BY 4.0; [Zenodo 14054775](https://zenodo.org/records/14054775)). We use the one-week sample: 10 sub-metered machines plus the plant main meter, 5-second readings aggregated to 15-minute means (672 intervals). Please cite the dataset paper: [doi:10.1145/3208903.3210278](https://doi.org/10.1145/3208903.3210278).
-- **Weekday baseline:** a 15-minute-slot profile from Mon-Tue, threshold calibrated on Wed, tested on Thu-Fri: **MAE 2.5 kW vs 9.2 kW for a naive mean (MAPE 14.6%)**; 2.1% of held-out intervals are flagged. Weekends are compared with the observed base load (no weekend day exists to learn from in one week).
-- **Base load is big:** the 10th-percentile plant draw (about 7.1 kW) accounts for **about 44% of the week's energy**, and 75% of intervals have no sub-metered machine running.
-- **Most energy is unmetered:** the 10 sub-metered machines are only **3.8%** of plant energy. The rest (HVAC, lighting, other equipment) is not visible in this data.
-- **Limits:** one week only; **no fault or waste labels**, so flags are not validated detections; the "load while machines idle" alert mostly fires around the weekday 07:30 ramp-up and may be legitimate; the full 3-month set (1.3 GB) was not used.
-- Results: [`mlmodel/hipe_results.json`](mlmodel/hipe_results.json). Run `python mlmodel/hipe_pipeline.py extract` (needs the raw zip in `data/hipe/week/`, gitignored) then `eval`.
+Data: **HIPE** (High-resolution Industrial Production Energy), smart-meter readings from a real power-electronics production plant (KIT, Germany, Oct-Dec 2017; CC BY 4.0; [Zenodo 14054775](https://zenodo.org/records/14054775)). Full 3-month set: 10 sub-metered machines plus the plant main meter, 5-second readings (about 15 million rows) aggregated to 15-minute means (8,832 intervals). Please cite the dataset paper: [doi:10.1145/3208903.3210278](https://doi.org/10.1145/3208903.3210278).
+- **Splits by date:** profile Oct 1 - Nov 25 (8 weeks), threshold calibration Nov 26 - Dec 9, held-out test Dec 10 - Dec 31 (includes Christmas and New Year).
+- **Baseline:** median plant power per (weekday, 15-min slot). On normal held-out days **MAE 3.35 kW vs 6.13 kW for a naive mean**, but **"same time last week" is better at 2.79 kW**, so a simple persistence rule beats this profile. MAPE is 26%. On Christmas / New Year days (assumed holidays) MAE is 3.83 kW because the profile does not know about holidays. Flags: 0.9% of normal test intervals, 0% on holidays.
+- **Base load is big:** the 10th-percentile plant draw (about 6.3 kW) accounts for **about 45% of all energy**; 78% of intervals have no sub-metered machine running, and 59% of the energy is used in those intervals.
+- **Most energy is unmetered:** the 10 sub-metered machines are only **4.1%** of plant energy (VacuumPump1, HighTemperatureOven and ChipPress are the largest). The rest (HVAC, lighting, other equipment) is not visible in this data.
+- **Limits:** a single plant and quarter; **no fault or waste labels**, so flags are not validated detections; the baseline is beaten by a last-week persistence rule; holiday days are an assumption; the "load while machines idle" alert mostly fires around the weekday 07:30 ramp-up and may be legitimate. The replay shows a "data split" tag; the dashboard flags in profile/calibration weeks are in-sample, so plant alerts are only raised in the held-out test weeks (Dec 10-31).
+- Results: [`mlmodel/hipe_results.json`](mlmodel/hipe_results.json). Run `python mlmodel/hipe_pipeline.py extract` (needs the 1.3 GB zip at `data/hipe/hipe_full.zip`, gitignored; it is streamed, not unpacked) then `eval`.
 
 ---
 

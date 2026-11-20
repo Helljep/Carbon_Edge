@@ -1,29 +1,57 @@
 {
-  "dataset": "HIPE one-week sample (2017-10-23..29), 10 machines + main terminal",
-  "intervals": 672,
+  "dataset": "HIPE full set (2017-10-01..12-31), 10 machines + main terminal, 15-min means",
+  "intervals": 8832,
   "split": {
-    "profile_days": "Mon-Tue",
-    "threshold_day": "Wed",
-    "test_days": "Thu-Fri"
+    "profile": "Oct 1 - Nov 25 (8 wk)",
+    "calibration": "Nov 26 - Dec 9 (2 wk)",
+    "test": "Dec 10 - Dec 31 (3 wk)"
   },
-  "base_load_kw": 7.07,
-  "threshold_kw": 8.23,
-  "heldout_weekday": {
-    "mae_kw": 2.51,
-    "mape_pct": 14.6,
-    "naive_mean_mae_kw": 9.21,
-    "flagged_pct": 2.1
+  "holidays_in_test": [
+    "2017-12-24",
+    "2017-12-25",
+    "2017-12-26",
+    "2017-12-31"
+  ],
+  "base_load_kw": 6.34,
+  "threshold_kw": 5.07,
+  "heldout_normal_days": {
+    "intervals": 1728,
+    "mae_kw": 3.35,
+    "mape_pct": 26.2,
+    "naive_mean_mae_kw": 6.13,
+    "flagged_pct": 0.9,
+    "last_week_same_slot_mae_kw": 2.79
   },
-  "weekend_mean_kw": 7.73,
-  "total_kwh": 2706.0,
-  "base_load_kwh": 1188.3,
-  "base_load_share_pct": 43.9,
-  "metered_machine_kwh": 103.7,
-  "metered_machine_share_pct": 3.8,
-  "idle_interval_pct": 75.3,
+  "heldout_holidays": {
+    "intervals": 384,
+    "mae_kw": 3.83,
+    "mape_pct": 37.1,
+    "naive_mean_mae_kw": 5.76,
+    "flagged_pct": 0.0
+  },
+  "weekend_mean_kw": 7.98,
+  "total_kwh": 30836.8,
+  "base_load_kwh": 13881.7,
+  "base_load_share_pct": 45.0,
+  "metered_machine_kwh": 1269.0,
+  "metered_machine_share_pct": 4.1,
+  "idle_interval_pct": 77.6,
+  "idle_energy_share_pct": 59.0,
+  "kwh_by_machine": {
+    "VacuumPump1": 271.4,
+    "HighTemperatureOven": 248.4,
+    "ChipPress": 246.2,
+    "SolderingOven": 186.9,
+    "WashingMachine": 81.7,
+    "VacuumPump2": 65.7,
+    "ScreenPrinter": 63.5,
+    "ChipSaw": 51.4,
+    "PickAndPlaceUnit": 42.9,
+    "VacuumOven": 10.8
+  },
   "notes": [
     "No fault or waste labels exist, so flags are unvalidated.",
-    "One week only: the weekday profile uses 2 days, and no weekend day is available for learning.",
+    "Holiday days in the test window are an assumption (German public holidays); the profile cannot know about them.",
     "About 96% of plant energy is not covered by the 10 sub-metered machines."
   ]
 }

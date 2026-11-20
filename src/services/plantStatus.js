@@ -3,7 +3,7 @@ export const REAL_MACHINES = [
   { id: 'bearing', title: 'Bearing Test Rig', group: 'Rotating machinery', source: 'NASA IMS run-to-failure vibration data' },
   { id: 'hydraulic', title: 'Hydraulic Rig', group: 'Rotating machinery', source: 'ZeMA hydraulic test rig (UCI #447)' },
   { id: 'energy', title: 'Steel Plant Energy', group: 'Plant', source: 'UCI steel industry energy data (2018)' },
-  { id: 'plant', title: 'Electronics Plant (HIPE)', group: 'Plant', source: 'HIPE smart-meter data, 1 week, KIT Germany (2017)' },
+  { id: 'plant', title: 'Electronics Plant (HIPE)', group: 'Plant', source: 'HIPE smart-meter data, 3 months, KIT Germany (2017)' },
 ];
 
 export const DEFAULT_MACHINE = 'bearing';

@@ -7,7 +7,7 @@ const STREAMS = {
   bearing: { path: '/ws/bearing', interval: 0.08, keep: 1000 },
   hydraulic: { path: '/ws/hydraulic', interval: 0.05, keep: 150 },
   energy: { path: '/ws/energy', interval: 0.02, keep: 192 },
-  plant: { path: '/ws/hipe', interval: 0.03, keep: 672 },
+  plant: { path: '/ws/hipe', interval: 0.01, keep: 672 },
 };
 const NAMES = Object.keys(STREAMS);
 const COMPONENT_KEYS = ['cooler', 'valve', 'pump_leak', 'accumulator'];

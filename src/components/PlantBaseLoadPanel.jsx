@@ -12,7 +12,7 @@ const MACHINE_COLORS = ['#00E5FF', '#FFB300', '#A78BFA', '#EF4444', '#26e5a2', '
 
 /**
  * Real smart-meter data (HIPE, KIT Germany, Oct 2017): plant main meter, 10 sub-metered machines.
- * Expected power is a weekday profile learned from Mon-Tue (weekends are compared with the base load).
+ * Expected power is a weekday profile learned from Oct-Nov (median per weekday and 15-min slot).
  * Flags are relative to that baseline; the dataset has no fault or waste labels.
  */
 export default function PlantBaseLoadPanel() {
@@ -50,7 +50,7 @@ export default function PlantBaseLoadPanel() {
         <div>
           <div style={{ fontSize: 18, fontWeight: 600, color: '#e2e8f0' }}>Real Plant Meters (electronics plant, HIPE 2017)</div>
           <div style={{ fontSize: 12, color: '#94a3b8' }}>
-            One recorded week, 10 sub-metered machines plus the main meter. The baseline is a weekday profile from Mon-Tue; no fault labels exist. {PHASE_LABEL[phase]}
+            Three recorded months, 10 sub-metered machines plus the main meter. The baseline is a weekday/weekend profile from Oct-Nov, tested on December; no fault labels exist. {PHASE_LABEL[phase]}
           </div>
         </div>
         <button
@@ -63,6 +63,7 @@ export default function PlantBaseLoadPanel() {
 
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', margin: '16px 0' }}>
         <Stat label="Time" value={latest ? `${latest.weekday} ${latest.time.slice(5, 16)}` : '—'} />
+        <Stat label="Data split" value={latest ? latest.split : '—'} color={latest && latest.split === 'test' ? '#26e5a2' : undefined} />
         <Stat label="Main meter" value={latest ? `${latest.main_kw.toFixed(1)} kW` : '—'} />
         <Stat label="Metered machines" value={latest ? `${latest.metered_kw.toFixed(1)} kW` : '—'} />
         <Stat label="Unmetered" value={latest ? `${latest.unmetered_kw.toFixed(1)} kW` : '—'} />
